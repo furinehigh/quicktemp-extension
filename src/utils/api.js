@@ -5,7 +5,7 @@ const fetchMailbox = (address) => {
         chrome.runtime.sendMessage(
             { type: "FETCH_MAILBOX", address },
             (response) => {
-                if (response?.success) resolve(response.data);
+                if (response?.success) resolve(response);
                 else reject(response?.error || "Unknown error");
             }
         );
