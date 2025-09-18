@@ -61,7 +61,7 @@ export default function EmailList({ mailbox, onSelectEmail }) {
             <div className="flex justify-between">
               <div>
                 <p className="font-semibold text-gray-800">{email.from || "Unknown"}</p>
-                <p className="text-gray-600">{email.subject || "(No Subject)"}</p>
+                <p className="text-gray-600 truncate">{email.subject || "(No Subject)"}</p>
               </div>
               <div className="text-sm text-gray-500">
                 {new Date(email.date).toLocaleTimeString([], {

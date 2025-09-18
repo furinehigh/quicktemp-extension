@@ -52,7 +52,7 @@ function App() {
     <div className="p-4 font-sans min-w-[280px]">
       <Header />
       <div className="flex flex-row justify-between space-x-1 items-center">
-        <div className="flex flex-row items-center w-3/4">
+        <div className="flex flex-row items-center w-full">
           <input
             id="email"
             type="text"
@@ -93,24 +93,24 @@ function App() {
               console.error("Failed to copy: ", err);
             }
           }}
-          className="text-sm py-0.5 px-1.5 rounded-md border border-gray-600"
+          className="text-sm py-2 px-2 rounded-md border border-gray-300"
         >
           {copied ? <Check size={16} /> : <Copy size={16} />}
         </button>
       </div>
 
-      <div className="mb-4 flex flex-row justify-center items-center space-x-1">
+      <div className="my-4 flex flex-row justify-center items-center space-x-1">
         <button
           onClick={fetchMessages}
           disabled={loading}
-          className="text-sm py-0.5 px-1.5 rounded-md border border-gray-600 flex flex-row items-center"
+          className="text-sm py-0.5 px-1.5 rounded-md border border-gray-300 flex flex-row items-center"
         >
           <RefreshCcw className={`${loading ? "animate-spin" : ""} mr-1 inline`} size={16} /> Refresh
         </button>
         <button
           onClick={handleRandomEmail}
           disabled={loading}
-          className="text-sm py-0.5 px-1.5 rounded-md border border-gray-600 flex flex-row items-center"
+          className="text-sm py-0.5 px-1.5 rounded-md border border-gray-300 flex flex-row items-center"
         >
           <Shuffle className="mr-1 inline" size={16} /> Random
         </button>
