@@ -46,3 +46,50 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true; // ✅ MUST BE OUTSIDE async block
     }
 });
+
+
+let socket;
+
+async function initWebSocket() {
+    const result = await chrome.storage.local.get("tempEmail");
+    const email = result.tempEmail;
+    if (!email) return;
+
+    socket = new WebSocket(`wss://ws.junkstopper.info?mailbox=${email}`);
+
+
+    socket.onopen = () => console.log("WebSocket connected");
+    socket.onmessage = async (event) => {
+        const data = JSON.parse(event.data);
+        console.log("Received:", data);
+
+        const result = await chrome.storage.local.get("savedMessages");
+        const savedMessages = result.savedMessages || {};
+
+        if (data.mailbox && savedMessages[data.mailbox]?.data) {
+            const existingIds = new Set(savedMessages[data.mailbox].data.map(msg => msg.id));
+            if (!existingIds.has(data.id)) {
+                savedMessages[data.mailbox].data.push(data);
+            }
+        } else if (data.mailbox) {
+            savedMessages[data.mailbox] = { data: [data], timestamp: Date.now() };
+        }
+
+        await chrome.storage.local.set({ savedMessages });
+
+        chrome.runtime.sendMessage({ type: "NEW_MESSAGE", data });
+    };
+
+    socket.onclose = () => {
+        console.log("Socket closed. Reconnecting in 5s...");
+        setTimeout(initWebSocket, 5000); // auto-reconnect
+    };
+
+    socket.onerror = (err) => {
+        console.error("WebSocket error:", err);
+        socket.close();
+    };
+}
+
+// Open socket when extension loads
+initWebSocket();
