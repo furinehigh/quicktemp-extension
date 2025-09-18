@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function EmailList({ mailbox, onSelectEmail }) {
   const [emails, setEmails] = useState([]);
-  const [visibleCount, setVisibleCount] = useState(5); // Show first 5 emails
+  const [currentPage, setCurrentPage] = useState(1);
+  const perPage = 5; // Number of emails per page
 
   // Load emails from chrome storage
   const loadEmailsForMailbox = (mb) => {
@@ -16,6 +17,7 @@ export default function EmailList({ mailbox, onSelectEmail }) {
       const saved = (res.savedMessages?.[mb]?.data) || [];
       const sorted = [...saved].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
       setEmails(sorted);
+      setCurrentPage(1); // reset to first page when mailbox changes
     });
   };
 
@@ -27,13 +29,10 @@ export default function EmailList({ mailbox, onSelectEmail }) {
   useEffect(() => {
     const listener = (msg) => {
       if (msg.type === "NEW_MESSAGE") {
-        // Prepend the new message
         setEmails((prev) => [msg.data, ...prev]);
-        // Play notification sound
+        setCurrentPage(1); // always go back to page 1 when new mail arrives
         const audio = new Audio("/new-email.mp3");
-        audio.play().catch(() => {
-          console.log("Autoplay blocked until user interacts.");
-        });
+        audio.play().catch(() => console.log("Autoplay blocked until user interacts."));
       }
     };
 
@@ -41,14 +40,19 @@ export default function EmailList({ mailbox, onSelectEmail }) {
     return () => chrome.runtime.onMessage.removeListener(listener);
   }, []);
 
+  // Pagination logic
+  const totalPages = Math.ceil(emails.length / perPage);
+  const startIndex = (currentPage - 1) * perPage;
+  const currentEmails = emails.slice(startIndex, startIndex + perPage);
+
   return (
     <div className="email-list mt-4 space-y-2">
       {emails.length === 0 && (
-        <p className="text-center text-gray-500">No emails yet</p>
+        <p className="text-center text-gray-500">No emails yet. No need to refresh.</p>
       )}
 
       <AnimatePresence>
-        {emails.slice(0, visibleCount).map((email) => (
+        {currentEmails.map((email) => (
           <motion.div
             key={email.id}
             initial={{ opacity: 0, y: -10 }}
@@ -59,11 +63,11 @@ export default function EmailList({ mailbox, onSelectEmail }) {
             onClick={() => onSelectEmail(email)}
           >
             <div className="flex justify-between">
-              <div>
-                <p className="font-semibold text-gray-800">{email.from || "Unknown"}</p>
-                <p className="text-gray-600 truncate">{email.subject || "(No Subject)"}</p>
+              <div className="min-w-0">
+                <p className="font-semibold text-gray-800 text-sm">{email.from || "Unknown"}</p>
+                <p className="text-gray-600 truncate text-xs">{email.subject || "(No Subject)"}</p>
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-xs text-gray-500 whitespace-nowrap">
                 {new Date(email.date).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -74,13 +78,38 @@ export default function EmailList({ mailbox, onSelectEmail }) {
         ))}
       </AnimatePresence>
 
-      {visibleCount < emails.length && (
-        <button
-          className="mt-3 text-sm w-full py-2 border rounded-lg hover:bg-gray-100"
-          onClick={() => setVisibleCount((prev) => prev + 5)}
-        >
-          Load More
-        </button>
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-3">
+          <button
+            className="px-2 py-1 text-xs border rounded disabled:opacity-50"
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            Prev
+          </button>
+
+          {/* Page numbers */}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              className={`px-2 py-1 text-xs rounded ${
+                page === currentPage ? "bg-gray-800 text-white" : "border hover:bg-gray-100"
+              }`}
+              onClick={() => setCurrentPage(page)}
+            >
+              {page}
+            </button>
+          ))}
+
+          <button
+            className="px-2 py-1 text-xs border rounded disabled:opacity-50"
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
       )}
     </div>
   );

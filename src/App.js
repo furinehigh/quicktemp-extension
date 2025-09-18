@@ -49,7 +49,7 @@ function App() {
   };
 
   return (
-    <div className="p-4 font-sans min-w-[280px]">
+    <div className="p-4 font-sans w-[400px] h-[600px]">
       <Header />
       <div className="flex flex-row justify-between space-x-1 items-center">
         <div className="flex flex-row items-center w-full">
@@ -63,7 +63,7 @@ function App() {
               setEmail(newEmail);
               chrome.storage.local.set({ tempEmail: newEmail });
             }}
-            className="p-1.5 border border-gray-300 rounded-tl-md rounded-bl-md bg-white text-gray-800"
+            className="p-1.5 w-full border border-gray-300 rounded-tl-md rounded-bl-md bg-white text-gray-800"
           />
           <select
             value={selectedDomain}
@@ -73,7 +73,7 @@ function App() {
               setEmail(newEmail);
               chrome.storage.local.set({ tempEmail: newEmail });
             }}
-            className="border py-1.5 border-gray-300 rounded-tr-md rounded-br-md border-l-0 bg-white"
+            className="border py-1.5 w-full border-gray-300 rounded-tr-md rounded-br-md border-l-0 bg-white"
           >
             {domains.map((domain) => (
               <option key={domain} value={domain}>

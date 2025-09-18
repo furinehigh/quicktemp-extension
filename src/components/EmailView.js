@@ -60,7 +60,7 @@ export default function EmailView({ email, onClose }) {
         const popupHeight = 600;
 
         // Calculate exact center position
-        const left = window.screenX + (window.outerWidth - popupWidth) / 2;
+        const left = window.screenX + (window.outerWidth - popupWidth) / 4;
         const top = window.screenY + (window.outerHeight - popupHeight) / 2;
 
         const newWin = window.open(
