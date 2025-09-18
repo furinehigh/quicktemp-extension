@@ -45,30 +45,80 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         return true; // ✅ MUST BE OUTSIDE async block
     }
+
+    // ✅ NEW HANDLER: Fetch specific email by ID
+    if (message.type === "FETCH_EMAIL") {
+        (async () => {
+            try {
+                if (!message.address || !message.id) throw new Error("Missing address or id");
+
+                // Check if cached
+                const { savedMessages } = (await chrome.storage.local.get("savedMessages")) || { savedMessages: {} };
+                const cached = savedMessages?.[message.address]?.data?.find((m) => m.id === message.id);
+
+                if (cached && cached.body) {
+                    sendResponse({ success: true, data: cached });
+                    return;
+                }
+
+                // Fetch from API
+                const res = await fetch(
+                    `https://${API_HOST}/mailbox/${message.address}/${message.id}`,
+                    {
+                        headers: {
+                            "x-rapidapi-host": API_HOST,
+                            "x-rapidapi-key": API_KEY,
+                        },
+                    }
+                );
+
+                if (!res.ok) throw new Error(`API Error: ${res.status}`);
+                const fullEmail = await res.json();
+
+                // Merge back into storage
+                if (savedMessages?.[message.address]?.data) {
+                    const idx = savedMessages[message.address].data.findIndex((m) => m.id === message.id);
+                    if (idx > -1) {
+                        savedMessages[message.address].data[idx] = {
+                            ...savedMessages[message.address].data[idx],
+                            ...fullEmail,
+                        };
+                    } else {
+                        savedMessages[message.address].data.push(fullEmail);
+                    }
+                } else {
+                    savedMessages[message.address] = { data: [fullEmail], timestamp: Date.now() };
+                }
+
+                await chrome.storage.local.set({ savedMessages });
+
+                sendResponse({ success: true, data: fullEmail });
+            } catch (error) {
+                console.error("Background FETCH_EMAIL error:", error);
+                sendResponse({ success: false, error: error.message });
+            }
+        })();
+
+        return true;
+    }
 });
 
 
 
-function showNotification(email) {
-  if (Notification.permission !== "granted") return;
+async function showNotification(email) {
+  const title = "📧 New Email Received!";
+  const message = `From: ${email.from}\nSubject: ${email.subject}`;
 
-  const notification = new Notification("📧 New Email Received!", {
-    body: `From: ${email.from}\nSubject: ${email.subject}`,
-    icon: "/logo192.png" // optional
-  });
-
-  notification.onclick = () => {
-    // Open a page showing the email
-    window.focus();
-    window.open(`/inbox/${email.id}`, "_blank");
-  };
-}
-
-function playSound() {
-  const audio = new Audio("/new-email.mp3");
-  audio.play().catch(() => {
-    console.log("Autoplay blocked. Sound will play after user interaction.");
-  });
+  if (chrome?.notifications) {
+    // ✅ Use Chrome extension API
+    chrome.notifications.create({
+      type: "basic",
+      iconUrl: "/icon-128.png",
+      title,
+      message,
+      priority: 2,
+    });
+  } 
 }
 
 let socket;
@@ -98,8 +148,7 @@ async function initWebSocket() {
             savedMessages[data.mailbox] = { data: [data], timestamp: Date.now() };
         }
 
-        showNotification(data);
-        playSound();
+        await showNotification(data);
 
         await chrome.storage.local.set({ savedMessages });
 
