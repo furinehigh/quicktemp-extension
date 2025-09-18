@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Header from "./components/Header";
-import { fetchMailbox, randomDomain, randomString, domains } from "./utils/api";
+import { fetchMailbox, randomDomain, randomString, domains, requestNotificationPermission } from "./utils/api";
 import { Check, Copy, RefreshCcw, Shuffle } from "lucide-react";
 /* global chrome */
 function App() {
@@ -12,6 +12,7 @@ function App() {
 
   useEffect(() => {
     chrome?.storage?.local?.get?.("tempEmail", async (res) => {
+      await requestNotificationPermission();
       const cachedEmail = res.tempEmail;
       if (cachedEmail) {
         setEmail(cachedEmail);

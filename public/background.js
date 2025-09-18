@@ -48,6 +48,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 
+
+function showNotification(email) {
+  if (Notification.permission !== "granted") return;
+
+  const notification = new Notification("📧 New Email Received!", {
+    body: `From: ${email.from}\nSubject: ${email.subject}`,
+    icon: "/logo192.png" // optional
+  });
+
+  notification.onclick = () => {
+    // Open a page showing the email
+    window.focus();
+    window.open(`/inbox/${email.id}`, "_blank");
+  };
+}
+
+function playSound() {
+  const audio = new Audio("/new-email.mp3");
+  audio.play().catch(() => {
+    console.log("Autoplay blocked. Sound will play after user interaction.");
+  });
+}
+
 let socket;
 
 async function initWebSocket() {
@@ -74,6 +97,9 @@ async function initWebSocket() {
         } else if (data.mailbox) {
             savedMessages[data.mailbox] = { data: [data], timestamp: Date.now() };
         }
+
+        showNotification(data);
+        playSound();
 
         await chrome.storage.local.set({ savedMessages });
 

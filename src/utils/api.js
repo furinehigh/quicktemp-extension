@@ -27,4 +27,17 @@ const randomDomain = () => {
     return domains[Math.floor(Math.random() * domains.length)];
 };
 
-export { fetchMailbox, randomString, randomDomain, domains };
+async function requestNotificationPermission() {
+  if (!("Notification" in window)) {
+    alert("This browser does not support notifications.");
+    return;
+  }
+
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") {
+    alert("You need to allow notifications to receive email alerts.");
+  }
+}
+
+
+export { fetchMailbox, randomString, randomDomain, domains, requestNotificationPermission };
