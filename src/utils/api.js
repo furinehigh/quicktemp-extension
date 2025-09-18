@@ -12,12 +12,15 @@ const fetchMailbox = (address) => {
     });
 };
 
-const fetchEmailById = (address, id) => {
+const fetchMessage = (address, id) => {
     return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({ type: "FETCH_EMAIL", address, id }, (response) => {
-            if (response?.success) resolve(response.data);
-            else reject(response?.error || "Unknown error");
-        });
+        chrome.runtime.sendMessage(
+            { type: "FETCH_MESSAGE", address, id },
+            (response) => {
+                if (response?.success) resolve(response.data);
+                else reject(response?.error || "Unknown error");
+            }
+        );
     });
 };
 
@@ -38,4 +41,4 @@ const randomDomain = () => {
 };
 
 
-export { fetchMailbox, randomString, randomDomain, domains, fetchEmailById };
+export { fetchMailbox, randomString, randomDomain, domains, fetchMessage };

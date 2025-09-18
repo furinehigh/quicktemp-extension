@@ -46,24 +46,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true; // ✅ MUST BE OUTSIDE async block
     }
 
-    // ✅ NEW HANDLER: Fetch specific email by ID
-    if (message.type === "FETCH_EMAIL") {
+   if (message.type === "FETCH_MESSAGE") {
         (async () => {
             try {
-                if (!message.address || !message.id) throw new Error("Missing address or id");
+                if (!message.address || !message.id) throw new Error("Missing params");
 
-                // Check if cached
-                const { savedMessages } = (await chrome.storage.local.get("savedMessages")) || { savedMessages: {} };
-                const cached = savedMessages?.[message.address]?.data?.find((m) => m.id === message.id);
+                const { savedMessages } = await chrome.storage.local.get("savedMessages") || { savedMessages: {} };
+                const mailboxData = savedMessages?.[message.address]?.data || [];
+                const cached = mailboxData.find((msg) => msg.id === message.id);
 
-                if (cached && cached.body) {
+                if (cached?.html || cached?.text) {
                     sendResponse({ success: true, data: cached });
                     return;
                 }
 
-                // Fetch from API
                 const res = await fetch(
-                    `https://${API_HOST}/mailbox/${message.address}/${message.id}`,
+                    `https://${API_HOST}/mailbox/${message.address}/message/${message.id}`,
                     {
                         headers: {
                             "x-rapidapi-host": API_HOST,
@@ -73,32 +71,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 );
 
                 if (!res.ok) throw new Error(`API Error: ${res.status}`);
-                const fullEmail = await res.json();
 
-                // Merge back into storage
-                if (savedMessages?.[message.address]?.data) {
-                    const idx = savedMessages[message.address].data.findIndex((m) => m.id === message.id);
-                    if (idx > -1) {
-                        savedMessages[message.address].data[idx] = {
-                            ...savedMessages[message.address].data[idx],
-                            ...fullEmail,
-                        };
-                    } else {
-                        savedMessages[message.address].data.push(fullEmail);
-                    }
-                } else {
-                    savedMessages[message.address] = { data: [fullEmail], timestamp: Date.now() };
-                }
+                const data = await res.json();
 
-                await chrome.storage.local.set({ savedMessages });
+                // Update cached storage with full message body
+                const updatedMailbox = mailboxData.map((msg) =>
+                    msg.id === message.id ? { ...msg, ...data.data } : msg
+                );
 
-                sendResponse({ success: true, data: fullEmail });
-            } catch (error) {
-                console.error("Background FETCH_EMAIL error:", error);
-                sendResponse({ success: false, error: error.message });
+                await chrome.storage.local.set({
+                    savedMessages: {
+                        ...savedMessages,
+                        [message.address]: { data: updatedMailbox, timestamp: Date.now() },
+                    },
+                });
+
+                sendResponse({ success: true, data: data.data });
+            } catch (err) {
+                console.error("FETCH_MESSAGE error:", err);
+                sendResponse({ success: false, error: err.message });
             }
         })();
-
         return true;
     }
 });
