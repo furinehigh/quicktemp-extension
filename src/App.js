@@ -49,7 +49,7 @@ function App() {
   };
 
   return (
-    <div className="p-4 font-sans w-[400px] h-[600px]">
+    <div className="p-4 font-sans w-[400px] h-[550px]">
       <Header />
       <div className="flex flex-row justify-between space-x-1 items-center">
         <div className="flex flex-row items-center w-full">

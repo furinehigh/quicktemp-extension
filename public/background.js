@@ -43,10 +43,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }
         })();
 
-        return true; // ✅ MUST BE OUTSIDE async block
+        return true;
     }
 
-   if (message.type === "FETCH_MESSAGE") {
+    if (message.type === "FETCH_MESSAGE") {
         (async () => {
             try {
                 if (!message.address || !message.id) throw new Error("Missing params");
@@ -94,24 +94,68 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         })();
         return true;
     }
+
+    if (message.type === "DELETE_MESSAGE") {
+        (async () => {
+            try {
+                if (!message.address || !message.id) throw new Error("Missing params");
+
+                const result = await chrome.storage.local.get("savedMessages");
+                const savedMessages = result.savedMessages || {};
+                const mailboxData = savedMessages[message.address]?.data || [];
+
+                const res = await fetch(
+                    `https://${API_HOST}/mailbox/${message.address}/message/${message.id}`,
+                    {
+                        headers: {
+                            "x-rapidapi-host": API_HOST,
+                            "x-rapidapi-key": API_KEY,
+                        },
+                        method: "DELETE",
+                    }
+                );
+
+                if (!res.ok) throw new Error(`API Error: ${res.status}`);
+
+                const updatedMailbox = mailboxData.filter((msg) => msg.id !== message.id);
+
+                await chrome.storage.local.set({
+                    savedMessages: {
+                        ...savedMessages,
+                        [message.address]: {
+                            data: updatedMailbox,
+                            timestamp: Date.now(),
+                        },
+                    },
+                });
+
+                sendResponse({ success: true });
+            } catch (err) {
+                console.error("DELETE_MESSAGE error:", err);
+                sendResponse({ success: false, error: err.message });
+            }
+        })();
+
+        return true; // keep the message channel open
+    }
+
 });
 
 
 
 async function showNotification(email) {
-  const title = "📧 New Email Received!";
-  const message = `From: ${email.from}\nSubject: ${email.subject}`;
+    const title = "📧 New Email Received!";
+    const message = `From: ${email.from}\nSubject: ${email.subject}`;
 
-  if (chrome?.notifications) {
-    // ✅ Use Chrome extension API
-    chrome.notifications.create({
-      type: "basic",
-      iconUrl: "/icon-128.png",
-      title,
-      message,
-      priority: 2,
-    });
-  } 
+    if (chrome?.notifications) {
+        chrome.notifications.create({
+            type: "basic",
+            iconUrl: "logo192.png",
+            title,
+            message,
+            priority: 2,
+        });
+    }
 }
 
 let socket;
