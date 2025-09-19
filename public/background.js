@@ -139,6 +139,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true; // keep the message channel open
     }
 
+    if( message.type === "INIT_SOCKET" ) {
+        initWebSocket();
+        sendResponse({ success: true });
+        return true;
+    }
+
 });
 
 

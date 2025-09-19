@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { fetchMessage } from "../utils/api";
+import DOMPurify from "dompurify";
+import { CopyPlus, X } from "lucide-react";
 
 export default function EmailView({ email, onClose }) {
     const [fullEmail, setFullEmail] = useState(email);
@@ -23,6 +25,9 @@ export default function EmailView({ email, onClose }) {
                 iframeRef.current.contentDocument ||
                 iframeRef.current.contentWindow.document;
             doc.open();
+            const safeHTML = DOMPurify.sanitize(fullEmail.html, {
+                USE_PROFILES: { html: true },
+            });
             doc.write(`
         <html>
           <head>
@@ -48,7 +53,7 @@ export default function EmailView({ email, onClose }) {
               }
             </style>
           </head>
-          <body>${fullEmail.html}</body>
+          <body>${safeHTML}</body>
         </html>
       `);
             doc.close();
@@ -72,7 +77,7 @@ export default function EmailView({ email, onClose }) {
         if (!newWin) return alert("Popup blocked! Please allow popups for this extension/site.");
 
         const content = fullEmail?.html
-            ? fullEmail.html
+            ? DOMPurify.sanitize(fullEmail.html, { USE_PROFILES: { html: true } })
             : `<pre style="font-family: monospace; font-size: 14px; white-space: pre-wrap; padding: 1rem;">${fullEmail?.text || "No content available."}</pre>`;
 
         newWin.document.write(`
@@ -131,13 +136,13 @@ export default function EmailView({ email, onClose }) {
                             className="text-gray-500 hover:text-black text-xs border px-2 py-0.5 rounded-md"
                             title="Open in New Window"
                         >
-                            ⧉
+                            <CopyPlus size={14} className="inline" />
                         </button>
                         <button
                             onClick={onClose}
                             className="text-gray-500 hover:text-black text-sm"
                         >
-                            ✕
+                            <X size={16} className="inline" />
                         </button>
                     </div>
                 </div>

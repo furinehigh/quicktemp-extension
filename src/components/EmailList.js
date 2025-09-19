@@ -1,12 +1,43 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Trash } from "lucide-react";
+import { deleteMessage } from "../utils/api";
 /* global chrome */
 
 export default function EmailList({ mailbox, onSelectEmail }) {
   const [emails, setEmails] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const perPage = 5;
+
+  const deleteDialog = (emailId) => {
+    return showDeleteDialog && (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center text-xs justify-center z-50">
+        <p>Are you sure you want to delete this email?</p>
+        <div className="flex justify-end space-x-2 mt-4">
+          <button
+            className="px-4 py-2 bg-red-600 text-white rounded"
+            onClick={() => {
+              deleteMessage(mailbox, emailId).then(() => {
+                setEmails((prev) => prev.filter((em) => em.id !== emailId));
+              }).catch((err) => {
+                alert("Failed to delete email: " + err);
+              });
+            }}
+          >
+            Delete
+          </button>
+          <button className="px-4 py-2 bg-gray-200 rounded" onClick={() => setShowDeleteDialog(false)}>
+            Cancel
+          </button>
+        </div>
+      </motion.div>
+    );
+  };
 
   // Load emails from chrome storage
   const loadEmailsForMailbox = (mb) => {
@@ -107,10 +138,8 @@ export default function EmailList({ mailbox, onSelectEmail }) {
               >
                 <button className="absolute bottom-3 right-[-15px] group-hover:right-3 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
                   e.stopPropagation();
-                  const confirmDelete = window.confirm("Are you sure you want to delete this email?");
-                  if (confirmDelete) {
-                    // Call the delete function here
-                  }
+                  setShowDeleteDialog(true);
+                  deleteDialog(email.id);
                 }}>
                   <Trash size={16} className="text-gray-400 hover:text-red-500 transition duration-300" />
                 </button>

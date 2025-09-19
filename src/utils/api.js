@@ -23,7 +23,25 @@ const fetchMessage = (address, id) => {
         );
     });
 };
+const deleteMessage = (address, id) => {
+    return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(
+            { type: "DELETE_MESSAGE", address, id },
+            (response) => {
+                if (response?.success) resolve();
+                else reject(response?.error || "Unknown error");
+            }
+        );
+    });
+};
 
+const initWebSocket = () => {
+    chrome.runtime.sendMessage({ type: "INIT_SOCKET" }, (response) => {
+        if (!response?.success) {
+            console.error("Failed to initialize WebSocket");
+        }
+    });
+};
 
 const randomString = (length) => {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -41,4 +59,4 @@ const randomDomain = () => {
 };
 
 
-export { fetchMailbox, randomString, randomDomain, domains, fetchMessage };
+export { fetchMailbox, randomString, randomDomain, domains, fetchMessage, deleteMessage, initWebSocket };

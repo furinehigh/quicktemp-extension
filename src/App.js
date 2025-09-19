@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Header from "./components/Header";
 import EmailList from "./components/EmailList";
 import EmailView from "./components/EmailView";
-import { fetchMailbox, randomDomain, randomString, domains } from "./utils/api";
+import { fetchMailbox, randomDomain, randomString, domains, initWebSocket } from "./utils/api";
 import { Check, Copy, RefreshCcw, Shuffle } from "lucide-react";
 /* global chrome */
 
@@ -62,6 +62,7 @@ function App() {
               const newEmail = localPart + "@" + selectedDomain;
               setEmail(newEmail);
               chrome.storage.local.set({ tempEmail: newEmail });
+              initWebSocket();
             }}
             className="p-1.5 w-full border border-gray-300 rounded-tl-md rounded-bl-md bg-white text-gray-800"
           />
