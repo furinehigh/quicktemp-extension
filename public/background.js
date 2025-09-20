@@ -80,7 +80,6 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
                 const data = await res.json();
 
-                // Update cached storage with full message body
                 const updatedMailbox = mailboxData.map((msg) =>
                     msg.id === message.id ? { ...msg, ...data.data } : msg
                 );
@@ -142,24 +141,48 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }
         })();
 
-        return true; // keep the message channel open
+        return true;
     }
 
     if (message.type === "INIT_SOCKET") {
         (async () => {
             try {
                 await initWebSocket();
-                sendResponse({ success: true });
 
-                if (address) {
-                    const history = await browser.storage.local.get("emailHistory") || { emailHistory: [] };
-                    await browser.storage.local.set({ emailHistory: [...history.emailHistory, message.address] });
+                let emailHistory = [];
+                if (message.address) {
+                    const result = await browser.storage.local.get("emailHistory");
+                    emailHistory = result.emailHistory || [];
+                    emailHistory = emailHistory.filter((e) => e !== message.address);
+                    emailHistory.unshift(message.address);
+                    emailHistory.slice(0,10)
+                    await browser.storage.local.set({ emailHistory });
                 }
+
+                sendResponse({ success: true });
             } catch (err) {
                 console.error("INIT_SOCKET error:", err);
                 sendResponse({ success: false, error: err.message });
             }
         })();
+
+        return true;
+    }
+    if (message.type === "EMAIL_HISTORY") {
+        (async () => {
+            try {
+
+                let emailHistory = [];
+                const result = await browser.storage.local.get("emailHistory");
+                emailHistory = result.emailHistory || [];
+
+                sendResponse({ success: true, data: emailHistory });
+            } catch (err) {
+                console.error("INIT_SOCKET error:", err);
+                sendResponse({ success: false, error: err.message });
+            }
+        })();
+
         return true;
     }
 

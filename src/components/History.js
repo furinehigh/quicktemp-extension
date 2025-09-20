@@ -1,39 +1,65 @@
-import { X } from 'lucide-react';
-import React from 'react'
+import { X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { getEmailHistory } from "../utils/api";
 /* global browser */
 if (typeof browser === "undefined") {
   /* global chrome */
   var browser = chrome;
 }
-function HistoryModal({isOpen, onClose, usingEmail}) {
+
+function HistoryModal({ isOpen, onClose, usingEmail }) {
+  const [emailHistory, setEmailHistory] = useState([]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    (async () => {
+      try {
+        const result = await getEmailHistory();
+        setEmailHistory(result || []);
+      } catch (err) {
+        console.error("Failed to load email history:", err);
+        setEmailHistory([]);
+      }
+    })();
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  const result = browser.storage.local.get(["emailHistory"])
-  const history = result.emailHistory || []
-
   return (
-    <div className='absolute right-4 top-12 bg-white border border-gray-300 rounded shadow-md p-4 w-64 z-50'>
-      <div className='flex justify-between'>
-      <h2 className="text-lg font-bold">Email History</h2>
-      <button onClick={onClose} className="mt-2 text-sm text-gray-600">
-        <X className='inline' />
-      </button>
+    <div className="absolute right-8 top-32 text-xs bg-white border border-gray-300 rounded shadow-md p-4 w-64 z-50">
+      <div className="flex justify-between w-full items-center mb-2">
+        <h2 className="text-sm font-bold">Email History</h2>
+        <button onClick={onClose} className="text-sm text-gray-600">
+          <X className="inline" size={16} />
+        </button>
       </div>
 
-      <div className=''>
-        {history.map((h, i) => (
-          <div className='rounded border border-gray-300 p-2 flex justify-between'>
-            <p>
-              {h}
-            </p>
-            <button onClick={usingEmail(h)} className='border border-gray-300 p-1 hover:bg-gray-200'>
-              Use
-            </button>
-          </div>
-        ))}
+      <div className="flex flex-col space-y-2 overflow-y-auto max-h-[300px]">
+        {emailHistory.length > 0 ? (
+          emailHistory.map((h, i) => (
+            <div
+              key={i}
+              className="rounded border border-gray-300 p-1 flex justify-between items-center"
+            >
+              <p>{h}</p>
+              <button
+                onClick={() => {
+                  onClose();
+                  usingEmail(h)
+                }}
+                type="button"
+                className="border border-gray-300 px-1 py-0.5 hover:bg-gray-200"
+              >
+                Use
+              </button>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-400 text-center">No history yet</p>
+        )}
       </div>
     </div>
-  )
+  );
 }
 
-export default HistoryModal
+export default HistoryModal;

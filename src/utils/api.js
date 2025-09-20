@@ -1,7 +1,7 @@
 /* global browser */
 if (typeof browser === "undefined") {
     /* global chrome */
-  var browser = chrome;
+    var browser = chrome;
 }
 const fetchMailbox = (address) => {
     return new Promise((resolve, reject) => {
@@ -41,9 +41,20 @@ const deleteMessage = (address, id) => {
 const initWebSocket = (address) => {
     browser.runtime.sendMessage({ type: "INIT_SOCKET", address }, (response) => {
         if (!response?.success) {
-            console.error("Failed to initialize WebSocket");
+            return response?.error
         }
     });
+};
+
+const getEmailHistory = () => {
+    return new Promise((resolve, reject) => {
+        browser.runtime.sendMessage({ type: "EMAIL_HISTORY" }, (response) => {
+            if (response?.success) {
+                resolve(response.data)
+            }
+            else reject(response?.error || 'Unknown error');
+        });
+    })
 };
 
 const randomString = (length) => {
@@ -62,4 +73,4 @@ const randomDomain = () => {
 };
 
 
-export { fetchMailbox, randomString, randomDomain, domains, fetchMessage, deleteMessage, initWebSocket };
+export { fetchMailbox, randomString, randomDomain, domains, fetchMessage, deleteMessage, initWebSocket, getEmailHistory };

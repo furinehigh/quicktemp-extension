@@ -51,6 +51,7 @@ function App() {
     setEmail(newEmail);
     setSelectedDomain(newEmail.split("@")[1]);
     browser.storage.local.set({ tempEmail: newEmail });
+    initWebSocket(newEmail);
   };
 
   return (
@@ -134,7 +135,10 @@ function App() {
 
       <EmailView email={selectedEmail} onClose={() => setSelectedEmail(null)} />
         
-      {showHistory && <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} usingEmail={setSelectedEmail} />}
+      {showHistory && <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} usingEmail={(e) => {
+        setEmail(e)
+        setSelectedDomain(e.split('@')[1])
+      }} />}
     </div>
   );
 }
