@@ -37,14 +37,13 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 }
                 browser.storage.local.set({
                     savedMessages: {
-                        [message.address]: { data: {
-                            ...data.data,
-                            folder: ['All']
-                        }, timestamp: Date.now() }
+                        [message.address]: {
+                            data: data.data, timestamp: Date.now()
+                        }
                     }
                 });
 
-                const reqData = data.data.filter((m) => m.folder.includes(message.folder) )
+                const reqData = data.data.filter((m) => m.folder.includes(message.folder))
 
                 sendResponse({ success: true, data: reqData });
             } catch (error) {
@@ -159,7 +158,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     emailHistory = result.emailHistory || [];
                     emailHistory = emailHistory.filter((e) => e !== message.address);
                     emailHistory.unshift(message.address);
-                    emailHistory.slice(0,10)
+                    emailHistory.slice(0, 10)
                     await browser.storage.local.set({ emailHistory });
                 }
 
@@ -190,23 +189,38 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
 
-    if (message.type === "FOLDER_CHANGE"){
+    if (message.type === "FOLDER_CHANGE") {
         (async () => {
             try {
                 const { savedMessages } = await browser.storage.local.get("savedMessages") || { savedMessages: {} };
                 const mailboxData = savedMessages?.[message.address]?.data || [];
                 const cached = mailboxData.find((msg) => msg.id === message.id);
 
-                if (message.folder === "Spam"){
-                    cached.folder.splice(0, 1, message.folder)
-                } else if (message.foler === "Trash"){
-                    
+                let folders = cached.folder;
+                const inAll = folders.includes("All");
+                const inSpam = folders.includes("Spam");
+                const inTrash = folders.includes("Trash");
+
+                const moveTo = message.folder;
+                const toSoT = moveTo === "Spam" || moveTo === "Trash";
+                const inSoT = inSpam || inTrash;
+
+                if (inAll && toSoT) {
+                    const idx = folders.indexOf("All");
+                    if (idx !== -1) folders[idx] = moveTo;
+                } else if (inAll && !toSoT) {
+                    folders.push(moveTo);
+                } else if (inSoT && moveTo === "All") {
+                    folders = folders.filter((f) => f !== "Spam" && f !== "Trash");
+                    folders.unshift("All");
+                } else {
+                    folders.push(moveTo);
                 }
 
-                cached.folder = message.folder
+                cached.folder = [...new Set(folders)];
             } catch (err) {
                 console.error("FOLDER_CHANGE error: ", err)
-                sendResponse({success: false, error: err.message})
+                sendResponse({ success: false, error: err.message })
             }
         })
     }
