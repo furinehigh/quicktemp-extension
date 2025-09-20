@@ -22,5 +22,5 @@ This is my first extension in my life, so i'm keeping it real. Using AI only if 
 
 # What i did while coding?
 - brain scratching
-- writing songs bw codes when i am frustrated with bugs
+- writing songs b/w codes when i am frustrated with bugs
 - thinking about new features (i wanna make it large so that i can eat your internet)
