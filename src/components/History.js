@@ -26,7 +26,7 @@ function HistoryModal({ isOpen, onClose, usingEmail }) {
   if (!isOpen) return null;
 
   return (
-    <div className="absolute right-8 top-36 text-xs bg-white border border-gray-300 rounded shadow-md p-4 w-64 z-50">
+    <div className="absolute right-8 top-40 text-xs bg-white border border-gray-300 rounded shadow-md p-4 w-64 z-50">
       <div className="flex justify-between w-full items-center mb-2">
         <h2 className="text-sm font-bold">Email History</h2>
         <button onClick={onClose} className="text-sm text-gray-600">

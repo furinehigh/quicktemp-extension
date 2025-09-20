@@ -197,6 +197,12 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const mailboxData = savedMessages?.[message.address]?.data || [];
                 const cached = mailboxData.find((msg) => msg.id === message.id);
 
+                if (message.folder === "Spam"){
+                    cached.folder.splice(0, 1, message.folder)
+                } else if (message.foler === "Trash"){
+                    
+                }
+
                 cached.folder = message.folder
             } catch (err) {
                 console.error("FOLDER_CHANGE error: ", err)
@@ -214,7 +220,7 @@ async function showNotification(email) {
     if (browser?.notifications) {
         browser.notifications.create({
             type: "basic",
-            iconUrl: "logo192.png",
+            iconUrl: "icon61.png",
             title,
             message,
             priority: 2,
