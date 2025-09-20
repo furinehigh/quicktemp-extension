@@ -16,7 +16,7 @@ Temporary email extension for your browser with crazy features that you might ha
 
 # Least AI Policy by me :)
 This is my first extension in my life, so i'm keeping it real. Using AI only if i don't get something for hours of brain scratching(i scratch my brain a lot coz why not)...
-- Don't use copilot as its exceded my limits
+- Haven't use copilot as its exceded my limits
 - Started from scratch with CRA(create react app)
 - Learning and building
 
