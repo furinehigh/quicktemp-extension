@@ -1,7 +1,7 @@
 /* global browser */
 if (typeof browser === "undefined") {
     /* global chrome */
-  var browser = chrome;
+    var browser = chrome;
 }
 
 const API_KEY = '2a6819691fmshb9cf5179a87ac31p145ea2jsn136a1fc2af63'
@@ -145,9 +145,21 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true; // keep the message channel open
     }
 
-    if( message.type === "INIT_SOCKET" ) {
-        initWebSocket();
-        sendResponse({ success: true });
+    if (message.type === "INIT_SOCKET") {
+        (async () => {
+            try {
+                await initWebSocket();
+                sendResponse({ success: true });
+
+                if (address) {
+                    const history = await browser.storage.local.get("emailHistory") || { emailHistory: [] };
+                    await browser.storage.local.set({ emailHistory: [...history.emailHistory, message.address] });
+                }
+            } catch (err) {
+                console.error("INIT_SOCKET error:", err);
+                sendResponse({ success: false, error: err.message });
+            }
+        })();
         return true;
     }
 

@@ -38,8 +38,8 @@ const deleteMessage = (address, id) => {
     });
 };
 
-const initWebSocket = () => {
-    browser.runtime.sendMessage({ type: "INIT_SOCKET" }, (response) => {
+const initWebSocket = (address) => {
+    browser.runtime.sendMessage({ type: "INIT_SOCKET", address }, (response) => {
         if (!response?.success) {
             console.error("Failed to initialize WebSocket");
         }

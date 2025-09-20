@@ -3,11 +3,12 @@ import Header from "./components/Header";
 import EmailList from "./components/EmailList";
 import EmailView from "./components/EmailView";
 import { fetchMailbox, randomDomain, randomString, domains, initWebSocket } from "./utils/api";
-import { Check, Copy, RefreshCcw, Shuffle } from "lucide-react";
+import { Check, Copy, History, RefreshCcw, Shuffle } from "lucide-react";
+import HistoryModal from "./components/History";
 /* global browser */
 if (typeof browser === "undefined") {
-    /* global chrome */
-  var browser = chrome; 
+  /* global chrome */
+  var browser = chrome;
 }
 function App() {
   const [loading, setLoading] = useState(false);
@@ -15,8 +16,12 @@ function App() {
   const [selectedDomain, setSelectedDomain] = useState(randomDomain());
   const [copied, setCopied] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState(null);
+  const [showHistory, setShowHistory] = useState(false);
   const eListRef = useRef(null);
 
+  const handleOpenHistory = () => {
+    setShowHistory(true);
+  }
 
   const handleRefresh = () => {
     if (eListRef.current) {
@@ -39,7 +44,7 @@ function App() {
     });
   }, []);
 
-  
+
 
   const handleRandomEmail = () => {
     const newEmail = randomString(10) + "@" + randomDomain();
@@ -62,7 +67,7 @@ function App() {
               const newEmail = localPart + "@" + selectedDomain;
               setEmail(newEmail);
               browser.storage.local.set({ tempEmail: newEmail });
-              initWebSocket();
+              initWebSocket(newEmail);
             }}
             className="p-1.5 w-full border border-gray-300 rounded-tl-md rounded-bl-md bg-white text-gray-800"
           />
@@ -73,6 +78,7 @@ function App() {
               setSelectedDomain(e.target.value);
               setEmail(newEmail);
               browser.storage.local.set({ tempEmail: newEmail });
+              initWebSocket(newEmail);
             }}
             className="border py-1.5 w-full border-gray-300 rounded-tr-md rounded-br-md border-l-0 bg-white"
           >
@@ -102,7 +108,7 @@ function App() {
 
       <div className="my-4 flex flex-row justify-center items-center space-x-1">
         <button
-        onClick={handleRefresh}
+          onClick={handleRefresh}
           disabled={loading}
           className="text-sm py-0.5 px-1.5 rounded-md border border-gray-300 flex flex-row items-center"
         >
@@ -115,13 +121,20 @@ function App() {
         >
           <Shuffle className="mr-1 inline" size={16} /> Random
         </button>
+        <button
+          onClick={handleOpenHistory}
+          disabled={loading}
+          className="text-sm py-0.5 px-1.5 rounded-md border border-gray-300 flex flex-row items-center"
+        >
+          <History className="mr-1 inline" size={16} /> History
+        </button>
       </div>
 
-      {/* Email List */}
       <EmailList mailbox={email} onSelectEmail={setSelectedEmail} setLoading={setLoading} ref={eListRef} />
 
-      {/* Email View Modal */}
       <EmailView email={selectedEmail} onClose={() => setSelectedEmail(null)} />
+        
+      {showHistory && <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} usingEmail={setSelectedEmail} />}
     </div>
   );
 }
