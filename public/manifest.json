@@ -1,11 +1,25 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "QuickTemp React",
   "version": "1.0",
-  "action": { "default_popup": "index.html" },
-  "background": {
-    "service_worker": "background.js",
-    "type": "module"
+  "description": "A simple cross-browser extension built with React",
+  "browser_action": {
+    "default_popup": "index.html"
   },
-  "permissions": ["storage", "alarms", "notifications"]
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "permissions": [
+    "storage",
+    "alarms",
+    "notifications",
+    "unlimitedStorage"
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "quicktemp@example.com",
+      "strict_min_version": "109.0"
+    }
+  }
 }

@@ -1,8 +1,11 @@
-/* global chrome */
-
+/* global browser */
+if (typeof browser === "undefined") {
+    /* global chrome */
+  var browser = chrome;
+}
 const fetchMailbox = (address) => {
     return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage(
+        browser.runtime.sendMessage(
             { type: "FETCH_MAILBOX", address },
             (response) => {
                 if (response?.success) resolve(response);
@@ -14,7 +17,7 @@ const fetchMailbox = (address) => {
 
 const fetchMessage = (address, id) => {
     return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage(
+        browser.runtime.sendMessage(
             { type: "FETCH_MESSAGE", address, id },
             (response) => {
                 if (response?.success) resolve(response.data);
@@ -25,7 +28,7 @@ const fetchMessage = (address, id) => {
 };
 const deleteMessage = (address, id) => {
     return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage(
+        browser.runtime.sendMessage(
             { type: "DELETE_MESSAGE", address, id },
             (response) => {
                 if (response?.success) resolve();
@@ -36,7 +39,7 @@ const deleteMessage = (address, id) => {
 };
 
 const initWebSocket = () => {
-    chrome.runtime.sendMessage({ type: "INIT_SOCKET" }, (response) => {
+    browser.runtime.sendMessage({ type: "INIT_SOCKET" }, (response) => {
         if (!response?.success) {
             console.error("Failed to initialize WebSocket");
         }

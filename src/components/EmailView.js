@@ -69,7 +69,7 @@ export default function EmailView({ email, onClose }) {
         const top = window.screenY + (window.outerHeight - popupHeight) / 2;
 
         const newWin = window.open(
-            "",
+            "about:blank",
             "_blank",
             `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable,scrollbars`
         );
@@ -80,7 +80,9 @@ export default function EmailView({ email, onClose }) {
             ? DOMPurify.sanitize(fullEmail.html, { USE_PROFILES: { html: true } })
             : `<pre style="font-family: monospace; font-size: 14px; white-space: pre-wrap; padding: 1rem;">${fullEmail?.text || "No content available."}</pre>`;
 
-        newWin.document.write(`
+        newWin.onload = () => {
+            newWin.document.write(`
+        <!DOCTYPE html>
         <html>
             <head>
                 <title>${email.subject || "Email"}</title>
@@ -111,7 +113,8 @@ export default function EmailView({ email, onClose }) {
             </body>
         </html>
     `);
-        newWin.document.close();
+            newWin.document.close();
+        }
     };
 
 
@@ -124,7 +127,7 @@ export default function EmailView({ email, onClose }) {
             exit={{ opacity: 0, y: 10 }}
             className="fixed inset-0 bg-black/40 flex justify-center items-center z-50"
         >
-            <div className="bg-white rounded-2xl shadow-lg p-3 max-w-lg w-full max-h-[90vh] flex flex-col">
+            <div className="bg-white rounded shadow-md p-3 w-full h-[400px] flex flex-col">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-1">
                     <h2 className="font-semibold text-sm leading-tight truncate pr-2">

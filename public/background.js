@@ -1,8 +1,13 @@
-/* global chrome */
+/* global browser */
+if (typeof browser === "undefined") {
+    /* global chrome */
+  var browser = chrome;
+}
+
 const API_KEY = '2a6819691fmshb9cf5179a87ac31p145ea2jsn136a1fc2af63'
 const API_HOST = "temp-mail-maildrop1.p.rapidapi.com";
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "FETCH_MAILBOX") {
         (async () => {
             try {
@@ -16,6 +21,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                             "x-rapidapi-host": API_HOST,
                             "x-rapidapi-key": API_KEY,
                         },
+                        method: "GET",
                     }
                 );
 
@@ -24,13 +30,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 }
 
                 const data = await res.json();
-                const { savedMessages } = await chrome.storage.local.get("savedMessages") || { savedMessages: {} };
+                const { savedMessages } = await browser.storage.local.get("savedMessages") || { savedMessages: {} };
                 // combine new and old messages, avoiding duplicates
                 if (savedMessages?.[message.address]?.data) {
                     const existingIds = new Set(savedMessages[message.address].data.map(msg => msg.id));
                     data.data = [...savedMessages[message.address].data, ...data.data.filter(msg => !existingIds.has(msg.id))];
                 }
-                chrome.storage.local.set({
+                browser.storage.local.set({
                     savedMessages: {
                         [message.address]: { data: data.data, timestamp: Date.now() }
                     }
@@ -51,7 +57,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             try {
                 if (!message.address || !message.id) throw new Error("Missing params");
 
-                const { savedMessages } = await chrome.storage.local.get("savedMessages") || { savedMessages: {} };
+                const { savedMessages } = await browser.storage.local.get("savedMessages") || { savedMessages: {} };
                 const mailboxData = savedMessages?.[message.address]?.data || [];
                 const cached = mailboxData.find((msg) => msg.id === message.id);
 
@@ -79,7 +85,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     msg.id === message.id ? { ...msg, ...data.data } : msg
                 );
 
-                await chrome.storage.local.set({
+                await browser.storage.local.set({
                     savedMessages: {
                         ...savedMessages,
                         [message.address]: { data: updatedMailbox, timestamp: Date.now() },
@@ -100,7 +106,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             try {
                 if (!message.address || !message.id) throw new Error("Missing params");
 
-                const result = await chrome.storage.local.get("savedMessages");
+                const result = await browser.storage.local.get("savedMessages");
                 const savedMessages = result.savedMessages || {};
                 const mailboxData = savedMessages[message.address]?.data || [];
 
@@ -119,7 +125,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
                 const updatedMailbox = mailboxData.filter((msg) => msg.id !== message.id);
 
-                await chrome.storage.local.set({
+                await browser.storage.local.set({
                     savedMessages: {
                         ...savedMessages,
                         [message.address]: {
@@ -153,8 +159,8 @@ async function showNotification(email) {
     const title = "📧 New Email Received!";
     const message = `From: ${email.from}\nSubject: ${email.subject}`;
 
-    if (chrome?.notifications) {
-        chrome.notifications.create({
+    if (browser?.notifications) {
+        browser.notifications.create({
             type: "basic",
             iconUrl: "logo192.png",
             title,
@@ -167,7 +173,7 @@ async function showNotification(email) {
 let socket;
 
 async function initWebSocket() {
-    const result = await chrome.storage.local.get("tempEmail");
+    const result = await browser.storage.local.get("tempEmail");
     const email = result.tempEmail;
     if (!email) return;
 
@@ -179,7 +185,7 @@ async function initWebSocket() {
         const data = JSON.parse(event.data);
         console.log("Received:", data);
 
-        const result = await chrome.storage.local.get("savedMessages");
+        const result = await browser.storage.local.get("savedMessages");
         const savedMessages = result.savedMessages || {};
 
         if (data.mailbox && savedMessages[data.mailbox]?.data) {
@@ -193,9 +199,9 @@ async function initWebSocket() {
 
         await showNotification(data);
 
-        await chrome.storage.local.set({ savedMessages });
+        await browser.storage.local.set({ savedMessages });
 
-        chrome.runtime.sendMessage({ type: "NEW_MESSAGE", data });
+        browser.runtime.sendMessage({ type: "NEW_MESSAGE", data });
     };
 
     socket.onclose = () => {

@@ -1,21 +1,31 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Header from "./components/Header";
 import EmailList from "./components/EmailList";
 import EmailView from "./components/EmailView";
 import { fetchMailbox, randomDomain, randomString, domains, initWebSocket } from "./utils/api";
 import { Check, Copy, RefreshCcw, Shuffle } from "lucide-react";
-/* global chrome */
-
+/* global browser */
+if (typeof browser === "undefined") {
+    /* global chrome */
+  var browser = chrome; 
+}
 function App() {
-  const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState(randomString(10) + "@" + randomDomain());
   const [selectedDomain, setSelectedDomain] = useState(randomDomain());
   const [copied, setCopied] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState(null);
+  const eListRef = useRef(null);
+
+
+  const handleRefresh = () => {
+    if (eListRef.current) {
+      eListRef.current.refresh();
+    }
+  }
 
   useEffect(() => {
-    chrome?.storage?.local?.get?.("tempEmail", async (res) => {
+    browser?.storage?.local?.get?.("tempEmail", async (res) => {
       const cachedEmail = res.tempEmail;
       if (cachedEmail) {
         setEmail(cachedEmail);
@@ -24,28 +34,18 @@ function App() {
         const newEmail = randomString(10) + "@" + randomDomain();
         setEmail(newEmail);
         setSelectedDomain(newEmail.split("@")[1]);
-        chrome.storage.local.set({ tempEmail: newEmail });
+        browser.storage.local.set({ tempEmail: newEmail });
       }
     });
   }, []);
 
-  const fetchMessages = async () => {
-    setLoading(true);
-    try {
-      const res = await fetchMailbox(email);
-      setEmails(res.data || []);
-    } catch (err) {
-      console.error(err);
-    }
-    setLoading(false);
-  };
+  
 
   const handleRandomEmail = () => {
     const newEmail = randomString(10) + "@" + randomDomain();
     setEmail(newEmail);
     setSelectedDomain(newEmail.split("@")[1]);
-    chrome.storage.local.set({ tempEmail: newEmail });
-    setEmails([]);
+    browser.storage.local.set({ tempEmail: newEmail });
   };
 
   return (
@@ -61,7 +61,7 @@ function App() {
               const localPart = e.target.value.replace(/[^a-z0-9]/gi, "").toLowerCase();
               const newEmail = localPart + "@" + selectedDomain;
               setEmail(newEmail);
-              chrome.storage.local.set({ tempEmail: newEmail });
+              browser.storage.local.set({ tempEmail: newEmail });
               initWebSocket();
             }}
             className="p-1.5 w-full border border-gray-300 rounded-tl-md rounded-bl-md bg-white text-gray-800"
@@ -72,7 +72,7 @@ function App() {
               const newEmail = email.split("@")[0] + "@" + e.target.value;
               setSelectedDomain(e.target.value);
               setEmail(newEmail);
-              chrome.storage.local.set({ tempEmail: newEmail });
+              browser.storage.local.set({ tempEmail: newEmail });
             }}
             className="border py-1.5 w-full border-gray-300 rounded-tr-md rounded-br-md border-l-0 bg-white"
           >
@@ -102,7 +102,7 @@ function App() {
 
       <div className="my-4 flex flex-row justify-center items-center space-x-1">
         <button
-          onClick={fetchMessages}
+        onClick={handleRefresh}
           disabled={loading}
           className="text-sm py-0.5 px-1.5 rounded-md border border-gray-300 flex flex-row items-center"
         >
@@ -118,7 +118,7 @@ function App() {
       </div>
 
       {/* Email List */}
-      <EmailList mailbox={email} onSelectEmail={setSelectedEmail} />
+      <EmailList mailbox={email} onSelectEmail={setSelectedEmail} setLoading={setLoading} ref={eListRef} />
 
       {/* Email View Modal */}
       <EmailView email={selectedEmail} onClose={() => setSelectedEmail(null)} />
