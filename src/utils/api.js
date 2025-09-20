@@ -3,10 +3,10 @@ if (typeof browser === "undefined") {
     /* global chrome */
     var browser = chrome;
 }
-const fetchMailbox = (address) => {
+const fetchMailbox = (address, folder) => {
     return new Promise((resolve, reject) => {
         browser.runtime.sendMessage(
-            { type: "FETCH_MAILBOX", address },
+            { type: "FETCH_MAILBOX", address, folder },
             (response) => {
                 if (response?.success) resolve(response);
                 else reject(response?.error || "Unknown error");
@@ -26,6 +26,7 @@ const fetchMessage = (address, id) => {
         );
     });
 };
+
 const deleteMessage = (address, id) => {
     return new Promise((resolve, reject) => {
         browser.runtime.sendMessage(

@@ -31,18 +31,22 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
                 const data = await res.json();
                 const { savedMessages } = await browser.storage.local.get("savedMessages") || { savedMessages: {} };
-                // combine new and old messages, avoiding duplicates
                 if (savedMessages?.[message.address]?.data) {
                     const existingIds = new Set(savedMessages[message.address].data.map(msg => msg.id));
                     data.data = [...savedMessages[message.address].data, ...data.data.filter(msg => !existingIds.has(msg.id))];
                 }
                 browser.storage.local.set({
                     savedMessages: {
-                        [message.address]: { data: data.data, timestamp: Date.now() }
+                        [message.address]: { data: {
+                            ...data.data,
+                            folder: ['All']
+                        }, timestamp: Date.now() }
                     }
                 });
 
-                sendResponse({ success: true, data: data.data });
+                const reqData = data.data.filter((m) => m.folder.includes(message.folder) )
+
+                sendResponse({ success: true, data: reqData });
             } catch (error) {
                 console.error("Background fetch error:", error);
                 sendResponse({ success: false, error: error.message });
@@ -178,7 +182,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
                 sendResponse({ success: true, data: emailHistory });
             } catch (err) {
-                console.error("INIT_SOCKET error:", err);
+                console.error("EMAIL_HISTORY error:", err);
                 sendResponse({ success: false, error: err.message });
             }
         })();
@@ -186,8 +190,21 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
 
-});
+    if (message.type === "FOLDER_CHANGE"){
+        (async () => {
+            try {
+                const { savedMessages } = await browser.storage.local.get("savedMessages") || { savedMessages: {} };
+                const mailboxData = savedMessages?.[message.address]?.data || [];
+                const cached = mailboxData.find((msg) => msg.id === message.id);
 
+                cached.folder = message.folder
+            } catch (err) {
+                console.error("FOLDER_CHANGE error: ", err)
+                sendResponse({success: false, error: err.message})
+            }
+        })
+    }
+});
 
 
 async function showNotification(email) {

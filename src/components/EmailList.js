@@ -12,7 +12,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   const [emails, setEmails] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [selectedTab, setSelectedTab] = useState("All");
+  const [selectedFolder, setSelectedFolder] = useState("All");
   const perPage = 5;
 
   useImperativeHandle(ref, () => ({
@@ -22,7 +22,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const res = await fetchMailbox(mailbox);
+      const res = await fetchMailbox(mailbox, selectedFolder);
       setEmails(res.data || []);
     } catch (err) {
       console.error(err);
@@ -98,22 +98,22 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   const startIndex = (currentPage - 1) * perPage;
   const currentEmails = emails.slice(startIndex, startIndex + perPage);
 
-  const tabs = ["All", "Unread", "Starred", "Spam", "Trash"];
+  const Folders = ["All", "Unread", "Starred", "Spam", "Trash"];
 
   return (
     <div className="email-list mt-4">
       <div className="flex justify-between items-center mb-2">
         <div className="flex space-x-2">
-          {tabs.map((tab) => (
+          {Folders.map((Folder) => (
             <button
-              key={tab}
-              className={`px-2 py-1 rounded-md text-xs border-1 border-gray-300 ${tab === selectedTab ? "bg-blue-500 text-white" : "text-gray-700"
+              key={Folder}
+              className={`px-2 py-1 rounded-md text-xs border-1 border-gray-300 ${Folder === selectedFolder ? "bg-blue-500 text-white" : "text-gray-700"
                 }`}
               onClick={() => {
-                setSelectedTab(tab);
+                setSelectedFolder(Folder);
               }}
             >
-              {tab}
+              {Folder}
             </button>
           ))}
         </div>
@@ -136,7 +136,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
       </div>
 
       {emails.length === 0 && (
-        <p className="text-center text-gray-500">No emails yet. No need to refresh.</p>
+        <p className="text-center text-gray-500">No emails yet in {selectedFolder}. No need to refresh.</p>
       )}
 
       <AnimatePresence mode="wait">
