@@ -38,7 +38,10 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 browser.storage.local.set({
                     savedMessages: {
                         [message.address]: {
-                            data: data.data, timestamp: Date.now()
+                            data: data.data.map((e) => ({
+                                ...e,
+                                folder: (e.folder || []).includes('All') ? e.folder : [...e.folder, 'All', 'Unread']
+                            })), timestamp: Date.now()
                         }
                     }
                 });
@@ -213,6 +216,9 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 } else if (inSoT && moveTo === "All") {
                     folders = folders.filter((f) => f !== "Spam" && f !== "Trash");
                     folders.unshift("All");
+                } else if (moveTo === 'Read'){
+                    const idx = folders.indexOf("Unread");
+                    if (idx !== -1) folders[idx] = moveTo;
                 } else {
                     folders.push(moveTo);
                 }
@@ -222,7 +228,9 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 console.error("FOLDER_CHANGE error: ", err)
                 sendResponse({ success: false, error: err.message })
             }
-        })
+        })();
+
+        return true;
     }
 });
 
@@ -254,11 +262,11 @@ async function initWebSocket() {
 
     socket.onopen = () => console.log("WebSocket connected");
     socket.onmessage = async (event) => {
-        const data = JSON.parse(event.data);
-        console.log("Received:", data);
+        let data = JSON.parse(event.data);
 
         const result = await browser.storage.local.get("savedMessages");
         const savedMessages = result.savedMessages || {};
+        data.folder.unshift('All')
 
         if (data.mailbox && savedMessages[data.mailbox]?.data) {
             const existingIds = new Set(savedMessages[data.mailbox].data.map(msg => msg.id));

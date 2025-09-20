@@ -39,6 +39,18 @@ const deleteMessage = (address, id) => {
     });
 };
 
+const moveToFolder = (address, id, folder) => {
+    return new Promise((resolve, reject) => {
+        browser.runtime.sendMessage(
+            { type: "DELETE_MESSAGE", address, id, folder },
+            (response) => {
+                if (response?.success) resolve();
+                else reject(response?.error || "Unknown error");
+            }
+        );
+    });
+};
+
 const initWebSocket = (address) => {
     browser.runtime.sendMessage({ type: "INIT_SOCKET", address }, (response) => {
         if (!response?.success) {
@@ -74,4 +86,4 @@ const randomDomain = () => {
 };
 
 
-export { fetchMailbox, randomString, randomDomain, domains, fetchMessage, deleteMessage, initWebSocket, getEmailHistory };
+export { fetchMailbox, randomString, randomDomain, domains, fetchMessage, deleteMessage, initWebSocket, getEmailHistory, moveToFolder };

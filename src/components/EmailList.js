@@ -1,7 +1,7 @@
 import React, { useEffect, useState, forwardRef, useImperativeHandle, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Trash } from "lucide-react";
-import { deleteMessage, fetchMailbox } from "../utils/api";
+import { deleteMessage, fetchMailbox, moveToFolder } from "../utils/api";
 /* global browser */
 let dltEmailId = null;
 if (typeof browser === "undefined") {
@@ -155,7 +155,10 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
               className="group email-item border rounded-lg p-3 shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden relative"
-              onClick={() => onSelectEmail(email)}
+              onClick={() => {
+                moveToFolder(mailbox, email.id, 'Read')
+                onSelectEmail(email)
+              }}
             >
               <div className="flex justify-between">
                 <div className="min-w-0">
@@ -176,8 +179,13 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
               >
                 <button className="absolute bottom-3 right-[-15px] group-hover:right-3 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
                   e.stopPropagation();
-                  setShowDeleteDialog(true);
-                  dltEmailId = email.id;
+                  if (email.folder.includes('Trash')) {
+
+                    setShowDeleteDialog(true);
+                    dltEmailId = email.id;
+                  } else {
+                    moveToFolder(mailbox, email.id, 'Trash')
+                  }
                 }}>
                   <Trash size={16} className="text-gray-400 hover:text-red-500 transition duration-300" />
                 </button>
