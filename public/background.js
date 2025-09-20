@@ -40,13 +40,13 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         [message.address]: {
                             data: data.data.map((e) => ({
                                 ...e,
-                                folder: (e.folder || []).includes('All') ? e.folder : [...e.folder, 'All', 'Unread']
+                                folder: (e?.folder || []).includes('All') ? e?.folder : [...(e?.folder || []), 'All', 'Unread']
                             })), timestamp: Date.now()
                         }
                     }
                 });
 
-                const reqData = data.data.filter((m) => m.folder.includes(message.folder))
+                const reqData = data.data.filter((m) => (m?.folder || []).includes(message.folder))
 
                 sendResponse({ success: true, data: reqData });
             } catch (error) {
@@ -79,6 +79,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                             "x-rapidapi-host": API_HOST,
                             "x-rapidapi-key": API_KEY,
                         },
+                        method: 'GET'
                     }
                 );
 

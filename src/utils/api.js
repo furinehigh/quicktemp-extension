@@ -42,7 +42,7 @@ const deleteMessage = (address, id) => {
 const moveToFolder = (address, id, folder) => {
     return new Promise((resolve, reject) => {
         browser.runtime.sendMessage(
-            { type: "DELETE_MESSAGE", address, id, folder },
+            { type: "FOLDER_CHANGE", address, id, folder },
             (response) => {
                 if (response?.success) resolve();
                 else reject(response?.error || "Unknown error");

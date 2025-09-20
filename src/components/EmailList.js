@@ -148,7 +148,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
           transition={{ duration: 0.25, ease: "easeOut" }}
           className="space-y-2"
         >
-          {currentEmails.map((email) => (
+          {(currentEmails.filter(e => (e?.folder || []).includes(selectedFolder))).map((email) => (
             <motion.div
               key={email.id}
               initial={{ opacity: 0, y: -10 }}
@@ -179,8 +179,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
               >
                 <button className="absolute bottom-3 right-[-15px] group-hover:right-3 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
                   e.stopPropagation();
-                  if (email.folder.includes('Trash')) {
-
+                  if ((email?.folder || []).includes('Trash')) {
                     setShowDeleteDialog(true);
                     dltEmailId = email.id;
                   } else {
