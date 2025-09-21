@@ -40,7 +40,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         [message.address]: {
                             data: data.data.map((e) => ({
                                 ...e,
-                                folder: (e?.folder || []).includes('All') ? e?.folder : [...(e?.folder || []), 'All', 'Unread']
+                                folder: (e?.folder || []).length !== 0 ? e?.folder : ['All', 'Unread']
                             })), timestamp: Date.now()
                         }
                     }
@@ -198,7 +198,11 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
             try {
                 const { savedMessages } = await browser.storage.local.get("savedMessages") || { savedMessages: {} };
                 const mailboxData = savedMessages?.[message.address]?.data || [];
-                const cached = mailboxData.find((msg) => msg.id === message.id);
+                const cachedIndex = mailboxData.findIndex((msg) => msg.id === message.id);
+
+                if (cachedIndex === -1) return;
+
+                let cached = mailboxData[cachedIndex];
 
                 let folders = cached.folder;
                 const inAll = folders.includes("All");
@@ -208,29 +212,40 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const moveTo = message.folder;
                 const toSoT = moveTo === "Spam" || moveTo === "Trash";
                 const inSoT = inSpam || inTrash;
-                console.log(moveTo, 'data:', cached)
+                console.log(moveTo, 'before updates data:', cached.folder)
 
                 if (inAll && toSoT) {
                     const idx = folders.indexOf("All");
                     if (idx !== -1) folders[idx] = moveTo;
-                    console.log('if 1 setisfied')
+                    console.log('if 1 setisfied', 'updated folders array: ', folders)
                 } else if (inAll && !toSoT && moveTo !== 'Read') {
                     folders.push(moveTo);
-                    console.log('if 2 setisfied')
+                    console.log('if 2 setisfied', 'updated folders array: ', folders)
                 } else if (inSoT && moveTo === "All") {
                     folders = folders.filter((f) => f !== "Spam" && f !== "Trash");
                     folders.unshift("All");
-                    console.log('if 3 setisfied')
-                } else if (moveTo === 'Read'){
+                    console.log('if 3 setisfied', 'updated folders array: ', folders)
+                } else if (moveTo === 'Read') {
                     const idx = folders.indexOf("Unread");
                     if (idx !== -1) folders[idx] = moveTo;
-                    console.log('if 4 setisfied')
+                    console.log('if 4 setisfied', 'updated folders array: ', folders)
                 } else {
                     folders.push(moveTo);
-                    console.log('if 5 setisfied')
+                    console.log('if 5 setisfied', 'updated folders array: ', folders)
                 }
 
-                cached.folder = [...new Set(folders)];
+                cached = { ...cached, folder: [...new Set(folders)] };
+                const newMailboxData = [...mailboxData]
+                newMailboxData[cachedIndex] = cached;
+
+                const updatedMessages = {
+                    ...savedMessages,
+                    [message.address]: {
+                        ...savedMessages[message.address],
+                        data: newMailboxData
+                    }
+                }
+                await browser.storage.local.set({ savedMessages: updatedMessages })
             } catch (err) {
                 console.error("FOLDER_CHANGE error: ", err)
                 sendResponse({ success: false, error: err.message })
@@ -273,7 +288,7 @@ async function initWebSocket() {
 
         const result = await browser.storage.local.get("savedMessages");
         const savedMessages = result.savedMessages || {};
-        data.folder.unshift('All')
+        (data?.folder || [])?.unshift('All')
 
         if (data.mailbox && savedMessages[data.mailbox]?.data) {
             const existingIds = new Set(savedMessages[data.mailbox].data.map(msg => msg.id));
