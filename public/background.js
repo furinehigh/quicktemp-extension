@@ -288,7 +288,6 @@ async function initWebSocket() {
 
         const result = await browser.storage.local.get("savedMessages");
         const savedMessages = result.savedMessages || {};
-        (data?.folder || [])?.unshift('All')
 
         if (data.mailbox && savedMessages[data.mailbox]?.data) {
             const existingIds = new Set(savedMessages[data.mailbox].data.map(msg => msg.id));

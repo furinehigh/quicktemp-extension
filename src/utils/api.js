@@ -44,7 +44,7 @@ const moveToFolder = (address, id, folder) => {
         browser.runtime.sendMessage(
             { type: "FOLDER_CHANGE", address, id, folder },
             (response) => {
-                if (response?.success) resolve();
+                if (response?.success) resolve({success: true});
                 else reject(response?.error || "Unknown error");
             }
         );

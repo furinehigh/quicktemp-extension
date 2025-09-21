@@ -1,6 +1,6 @@
 import React, { useEffect, useState, forwardRef, useImperativeHandle, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Trash } from "lucide-react";
+import { ChevronLeft, ChevronRight, OctagonAlert, Star, Trash } from "lucide-react";
 import { deleteMessage, fetchMailbox, moveToFolder } from "../utils/api";
 /* global browser */
 let dltEmailId = null;
@@ -63,13 +63,14 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   };
 
   // Load emails from browser storage
-  const loadEmailsForMailbox = (mb) => {
+  const loadEmailsForMailbox = (mb, folder = 'All') => {
     if (!mb) {
       setEmails([]);
       return;
     }
     browser.storage.local.get(["savedMessages"], (res) => {
-      const saved = res.savedMessages?.[mb]?.data || [];
+      let saved = res.savedMessages?.[mb]?.data || [];
+      saved = saved.filter(e => e.folder.includes(folder))
       const sorted = [...saved].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
       setEmails(sorted);
       setCurrentPage(1);
@@ -100,6 +101,15 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
 
   const Folders = ["All", "Unread", "Starred", "Spam", "Trash"];
 
+  const handleFolderChange = async (mailbox, emailId, folder) => {
+    const res = await moveToFolder(mailbox, emailId, folder)
+    console.log(res)
+    const data = await res.json()
+    if (data.success) {
+      loadEmailsForMailbox(mailbox, folder)
+    }
+  }
+
   return (
     <div className="email-list mt-4">
       <div className="flex justify-between items-center mb-2">
@@ -111,6 +121,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
                 }`}
               onClick={() => {
                 setSelectedFolder(Folder);
+                loadEmailsForMailbox(mailbox, Folder);
               }}
             >
               {Folder}
@@ -156,7 +167,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
               transition={{ duration: 0.2 }}
               className="group email-item border rounded-lg p-3 shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden relative"
               onClick={() => {
-                moveToFolder(mailbox, email.id, 'Read')
+                handleFolderChange(mailbox, email.id, 'Read')
                 onSelectEmail(email)
               }}
             >
@@ -183,10 +194,26 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
                     setShowDeleteDialog(true);
                     dltEmailId = email.id;
                   } else {
-                    moveToFolder(mailbox, email.id, 'Trash')
+                    handleFolderChange(mailbox, email.id, 'Trash')
                   }
                 }}>
-                  <Trash size={16} className="text-gray-400 hover:text-red-500 transition duration-300" />
+                  <Trash size={10} className="text-gray-400 hover:text-red-500 transition duration-300" />
+                </button>
+                <button className="absolute bottom-3 right-[-15px] group-hover:right-3 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
+                  e.stopPropagation();
+                  if ((email?.folder || []).includes('Starred')) {
+                    handleFolderChange(mailbox, email.id, 'Unstarred')
+                  } else {
+                    handleFolderChange(mailbox, email.id, 'Starred')
+                  }
+                }}>
+                  <Star size={10} className={`text-gray-400 hover:text-red-500 transition duration-300 ${(email?.folder || []).includes('Starred') ? 'fill-yellow-400' : ''}`} />
+                </button>
+                <button className="absolute bottom-3 right-[-15px] group-hover:right-3 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
+                  e.stopPropagation();
+                  handleFolderChange(mailbox, email.id, 'Spam')
+                }}>
+                  <OctagonAlert size={10} className={`text-gray-400 hover:text-red-500 transition duration-300 ${(email?.folder || []).includes('Spam') ? 'fill-yellow-400' : ''}`} />
                 </button>
               </motion.div>
             </motion.div>
