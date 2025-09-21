@@ -208,20 +208,26 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const moveTo = message.folder;
                 const toSoT = moveTo === "Spam" || moveTo === "Trash";
                 const inSoT = inSpam || inTrash;
+                console.log(moveTo, 'data:', cached)
 
                 if (inAll && toSoT) {
                     const idx = folders.indexOf("All");
                     if (idx !== -1) folders[idx] = moveTo;
-                } else if (inAll && !toSoT) {
+                    console.log('if 1 setisfied')
+                } else if (inAll && !toSoT && moveTo !== 'Read') {
                     folders.push(moveTo);
+                    console.log('if 2 setisfied')
                 } else if (inSoT && moveTo === "All") {
                     folders = folders.filter((f) => f !== "Spam" && f !== "Trash");
                     folders.unshift("All");
+                    console.log('if 3 setisfied')
                 } else if (moveTo === 'Read'){
                     const idx = folders.indexOf("Unread");
                     if (idx !== -1) folders[idx] = moveTo;
+                    console.log('if 4 setisfied')
                 } else {
                     folders.push(moveTo);
+                    console.log('if 5 setisfied')
                 }
 
                 cached.folder = [...new Set(folders)];
