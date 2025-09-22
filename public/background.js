@@ -218,24 +218,21 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     const idx = folders.indexOf("All");
                     if (idx !== -1) folders[idx] = moveTo;
                     console.log('if 1 setisfied', 'updated folders array: ', folders)
-                } else if (inAll && !toSoT && moveTo !== 'Read') {
-                    folders.push(moveTo);
-                    console.log('if 2 setisfied', 'updated folders array: ', folders)
                 } else if (inSoT && moveTo === "All") {
                     folders = folders.filter((f) => f !== "Spam" && f !== "Trash");
                     folders.unshift("All");
-                    console.log('if 3 setisfied', 'updated folders array: ', folders)
+                    console.log('if 2 setisfied', 'updated folders array: ', folders)
                 } else if (moveTo === 'Read') {
                     const idx = folders.indexOf("Unread");
                     if (idx !== -1) folders[idx] = moveTo;
-                    console.log('if 4 setisfied', 'updated folders array: ', folders)
+                    console.log('if 3 setisfied', 'updated folders array: ', folders)
                 } else if (moveTo === 'Unstarred') {
                     const idx = folders.indexOf("Starred");
                     if (idx !== -1) folders[idx] = moveTo;
-                    console.log('if 5 setisfied', 'updated folders array: ', folders)
+                    console.log('if 4 setisfied', 'updated folders array: ', folders)
                 } else {
                     folders.push(moveTo);
-                    console.log('if 6 setisfied', 'updated folders array: ', folders)
+                    console.log('if 5 setisfied', 'updated folders array: ', folders)
                 }
 
                 cached = { ...cached, folder: [...new Set(folders)] };
@@ -284,7 +281,7 @@ async function initWebSocket() {
     const email = result.tempEmail;
     if (!email) return;
 
-    socket = new WebSocket(`wss://ws.junkstopper.info?mailbox=${email}`);
+    socket = new WebSocket(`wss://fh.ws.junkstopper.info?mailbox=${email}`);
 
 
     socket.onopen = () => console.log("WebSocket connected");
@@ -293,6 +290,7 @@ async function initWebSocket() {
 
         const result = await browser.storage.local.get("savedMessages");
         const savedMessages = result.savedMessages || {};
+        data = {...data, folder: ['All', 'Unread']}
 
         if (data.mailbox && savedMessages[data.mailbox]?.data) {
             const existingIds = new Set(savedMessages[data.mailbox].data.map(msg => msg.id));

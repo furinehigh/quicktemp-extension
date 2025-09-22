@@ -64,29 +64,25 @@ export default function EmailView({ email, onClose }) {
         const popupWidth = 800;
         const popupHeight = 600;
 
-        // Calculate exact center position
         const left = window.screenX + (window.outerWidth - popupWidth) / 4;
         const top = window.screenY + (window.outerHeight - popupHeight) / 2;
-
         const newWin = window.open(
             "about:blank",
             "_blank",
             `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable,scrollbars`
         );
 
-        if (!newWin) return alert("Popup blocked! Please allow popups for this extension/site.");
+        if (!newWin) return alert("Popup blocked! Please allow popups.");
 
-        const content = fullEmail?.html
-            ? DOMPurify.sanitize(fullEmail.html, { USE_PROFILES: { html: true } })
-            : `<pre style="font-family: monospace; font-size: 14px; white-space: pre-wrap; padding: 1rem;">${fullEmail?.text || "No content available."}</pre>`;
-
-        newWin.onload = () => {
-            newWin.document.write(`
-        <!DOCTYPE html>
-        <html>
-            <head>
-                <title>${email.subject || "Email"}</title>
-                <style>
+        newWin.addEventListener("load", () => {
+            const doc = newWin.document;
+            doc.open();
+            doc.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${fullEmail.subject || "Email"}</title>
+                    <style>
                     body {
                         font-family: system-ui, sans-serif;
                         margin: 0;
@@ -101,21 +97,24 @@ export default function EmailView({ email, onClose }) {
                     ::-webkit-scrollbar-track { background: #f3f3f3; }
                     h1 { font-size: 1.1rem; margin-bottom: .5rem; }
                     .meta { font-size: 12px; color: #555; margin-bottom: 1rem; }
-                </style>
-            </head>
-            <body>
-                <h1>${email.subject || "(No Subject)"}</h1>
-                <div class="meta">
-                    <p><strong>From:</strong> ${email.from}</p>
-                    <p><strong>To:</strong> ${email.to}</p>
-                </div>
-                ${content}
-            </body>
-        </html>
-    `);
-            newWin.document.close();
-        }
+                    </style>
+                </head>
+                <body>
+                    <h1>${fullEmail.subject || "(No Subject)"}</h1>
+                    <div class="meta">
+                    <p><strong>From:</strong> ${fullEmail.from}</p>
+                    <p><strong>To:</strong> ${fullEmail.to}</p>
+                    </div>
+                    ${fullEmail?.html
+                    ? DOMPurify.sanitize(fullEmail.html, { USE_PROFILES: { html: true } })
+                    : `<pre style="font-family: monospace; font-size: 14px; white-space: pre-wrap; padding: 1rem;">${fullEmail?.text || "No content available."}</pre>`}
+                </body>
+                </html>
+            `);
+            doc.close();
+        });
     };
+
 
 
     if (!email) return null;

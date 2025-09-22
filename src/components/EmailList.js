@@ -169,7 +169,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
               transition={{ duration: 0.2 }}
               className="group email-item border rounded-lg p-3 shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden relative"
               onClick={() => {
-                handleFolderChange(mailbox, email.id, 'Read')
+                if (!email.folder.includes('Read')) handleFolderChange(mailbox, email.id, 'Read')
                 onSelectEmail(email)
               }}
             >
