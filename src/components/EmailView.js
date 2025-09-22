@@ -3,7 +3,11 @@ import { motion } from "framer-motion";
 import { fetchMessage } from "../utils/api";
 import DOMPurify from "dompurify";
 import { CopyPlus, X } from "lucide-react";
-
+/* global browser */
+if (typeof browser === "undefined") {
+    /* global chrome */
+    var browser = chrome;
+}
 export default function EmailView({ email, onClose }) {
     const [fullEmail, setFullEmail] = useState(email);
     const [loading, setLoading] = useState(!email?.html && !email?.text);
@@ -66,52 +70,24 @@ export default function EmailView({ email, onClose }) {
 
         const left = window.screenX + (window.outerWidth - popupWidth) / 4;
         const top = window.screenY + (window.outerHeight - popupHeight) / 2;
-        const newWin = window.open(
-            "about:blank",
-            "_blank",
-            `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable,scrollbars`
-        );
 
-        if (!newWin) return alert("Popup blocked! Please allow popups.");
+        const emailHtml = fullEmail?.html || '';
+        const emailText = fullEmail?.text || 'No content available.';
 
-        newWin.addEventListener("load", () => {
-            const doc = newWin.document;
-            doc.open();
-            doc.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>${fullEmail.subject || "Email"}</title>
-                    <style>
-                    body {
-                        font-family: system-ui, sans-serif;
-                        margin: 0;
-                        padding: 1rem;
-                        background: white;
-                        color: #1f2937;
-                        font-size: 14px;
-                        overflow-y: auto;
-                    }
-                    ::-webkit-scrollbar { width: 8px; }
-                    ::-webkit-scrollbar-thumb { background: #bbb; border-radius: 4px; }
-                    ::-webkit-scrollbar-track { background: #f3f3f3; }
-                    h1 { font-size: 1.1rem; margin-bottom: .5rem; }
-                    .meta { font-size: 12px; color: #555; margin-bottom: 1rem; }
-                    </style>
-                </head>
-                <body>
-                    <h1>${fullEmail.subject || "(No Subject)"}</h1>
-                    <div class="meta">
-                    <p><strong>From:</strong> ${fullEmail.from}</p>
-                    <p><strong>To:</strong> ${fullEmail.to}</p>
-                    </div>
-                    ${fullEmail?.html
-                    ? DOMPurify.sanitize(fullEmail.html, { USE_PROFILES: { html: true } })
-                    : `<pre style="font-family: monospace; font-size: 14px; white-space: pre-wrap; padding: 1rem;">${fullEmail?.text || "No content available."}</pre>`}
-                </body>
-                </html>
-            `);
-            doc.close();
+        const popupUrl = new URL(browser.runtime.getURL('popup.html'));
+        popupUrl.searchParams.append('subject', email.subject || '(No Subject)');
+        popupUrl.searchParams.append('from', email.from);
+        popupUrl.searchParams.append('to', email.to);
+        popupUrl.searchParams.append('html', encodeURIComponent(emailHtml));
+        popupUrl.searchParams.append('text', emailText);
+
+        browser.windows.create({
+            url: popupUrl.href,
+            type: "popup",
+            width: popupWidth,
+            height: popupHeight,
+            top,
+            left
         });
     };
 
