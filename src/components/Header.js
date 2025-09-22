@@ -8,7 +8,7 @@ const Header = () => {
         <h1 className="text-2xl font-bold text-blue-600 flex items-center ">
           QuickTemp
         </h1>
-        <Setting />
+        {/* <Setting /> */}
       </div>
     </header>
   )
