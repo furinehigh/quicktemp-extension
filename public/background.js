@@ -229,9 +229,13 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     const idx = folders.indexOf("Unread");
                     if (idx !== -1) folders[idx] = moveTo;
                     console.log('if 4 setisfied', 'updated folders array: ', folders)
+                } else if (moveTo === 'Unstarred') {
+                    const idx = folders.indexOf("Starred");
+                    if (idx !== -1) folders[idx] = moveTo;
+                    console.log('if 5 setisfied', 'updated folders array: ', folders)
                 } else {
                     folders.push(moveTo);
-                    console.log('if 5 setisfied', 'updated folders array: ', folders)
+                    console.log('if 6 setisfied', 'updated folders array: ', folders)
                 }
 
                 cached = { ...cached, folder: [...new Set(folders)] };

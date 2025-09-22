@@ -102,12 +102,9 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   const Folders = ["All", "Unread", "Starred", "Spam", "Trash"];
 
   const handleFolderChange = async (mailbox, emailId, folder) => {
-    const res = await moveToFolder(mailbox, emailId, folder)
-    console.log('res', res)
-    const data = await res.json()
-    if (data.success) {
-      loadEmailsForMailbox(mailbox, folder)
-    }
+    await moveToFolder(mailbox, emailId, folder)
+    console.log('i think the folder is now changed...')
+    loadEmailsForMailbox(mailbox, folder)
   }
 
   return (
@@ -197,7 +194,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
                     handleFolderChange(mailbox, email.id, 'Trash')
                   }
                 }}>
-                  <Trash size={10} className="text-gray-400 hover:text-red-500 transition duration-300" />
+                  <Trash size={12} className="text-gray-400 hover:text-red-500 transition duration-300" />
                 </button>
                 <button className="absolute bottom-3 right-[-15px] group-hover:right-7 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
                   e.stopPropagation();
@@ -207,13 +204,17 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
                     handleFolderChange(mailbox, email.id, 'Starred')
                   }
                 }}>
-                  <Star size={10} className={`text-gray-400 hover:text-yellow-400 transition duration-300 ${(email?.folder || []).includes('Starred') ? 'fill-yellow-400' : ''}`} />
+                  <Star size={12} className={`text-gray-400 hover:text-yellow-400 transition duration-300 ${(email?.folder || []).includes('Starred') ? 'fill-yellow-400 text-yellow-400' : ''}`} />
                 </button>
                 <button className="absolute bottom-3 right-[-15px] group-hover:right-11 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
                   e.stopPropagation();
-                  handleFolderChange(mailbox, email.id, 'Spam')
+                  if ((email?.folder || []).includes('Spam')) {
+                    handleFolderChange(mailbox, email.id, 'All')
+                  } else {
+                    handleFolderChange(mailbox, email.id, 'Spam')
+                  }
                 }}>
-                  <OctagonAlert size={10} className={`text-gray-400 hover:text-red-500 transition duration-300 ${(email?.folder || []).includes('Spam') ? 'fill-yellow-400' : ''}`} />
+                  <OctagonAlert size={12} className={`text-gray-400 hover:text-red-500 transition duration-300 ${(email?.folder || []).includes('Spam') ? 'text-red-500' : ''}`} />
                 </button>
               </motion.div>
             </motion.div>
