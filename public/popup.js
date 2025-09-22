@@ -1,4 +1,4 @@
-import DOMPurify from 'dompurify';
+import DOMPurify from './purify.es.mjs';
 
 document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);

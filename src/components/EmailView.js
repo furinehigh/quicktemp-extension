@@ -68,8 +68,9 @@ export default function EmailView({ email, onClose }) {
         const popupWidth = 800;
         const popupHeight = 600;
 
-        const left = window.screenX + (window.outerWidth - popupWidth) / 4;
-        const top = window.screenY + (window.outerHeight - popupHeight) / 2;
+        const left = Math.round(window.screenX + (window.outerWidth - popupWidth) / 4);
+        const top = Math.round(window.screenY + (window.outerHeight - popupHeight) / 2);
+
 
         const emailHtml = fullEmail?.html || '';
         const emailText = fullEmail?.text || 'No content available.';

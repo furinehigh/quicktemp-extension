@@ -41,6 +41,7 @@ function App() {
         setEmail(newEmail);
         setSelectedDomain(newEmail.split("@")[1]);
         browser.storage.local.set({ tempEmail: newEmail });
+        initWebSocket(newEmail)
       }
     });
   }, []);
