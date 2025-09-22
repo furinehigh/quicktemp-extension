@@ -15,7 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const contentDiv = document.getElementById('content');
     if (htmlContent) {
-        contentDiv.innerHTML = DOMPurify.sanitize(decodeURIComponent(htmlContent), { USE_PROFILES: { html: true } });
+        const sanitized = DOMPurify.sanitize(decodeURIComponent(htmlContent), {
+            USE_PROFILES: { html: true }
+        });
+        contentDiv.innerHTML = sanitized;
+
+        contentDiv.querySelectorAll('a').forEach(a => {
+            a.setAttribute('target', '_blank');
+            a.setAttribute('rel', 'noopener noreferrer');
+        });
     } else {
         const pre = document.createElement('pre');
         pre.style.fontFamily = 'monospace';

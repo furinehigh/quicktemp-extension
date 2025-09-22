@@ -29,37 +29,42 @@ export default function EmailView({ email, onClose }) {
                 iframeRef.current.contentDocument ||
                 iframeRef.current.contentWindow.document;
             doc.open();
-            const safeHTML = DOMPurify.sanitize(fullEmail.html, {
+            let safeHTML = DOMPurify.sanitize(fullEmail.html, {
                 USE_PROFILES: { html: true },
             });
+
+            safeHTML = safeHTML.replace(
+                /<a\s/gi,
+                '<a target="_blank" rel="noopener noreferrer" '
+            );
             doc.write(`
-        <html>
-          <head>
-            <style>
-              body {
-                font-family: system-ui, sans-serif;
-                font-size: 13px;
-                color: #1f2937;
-                margin: 0;
-                padding: 10px;
-                background: white;
-                overflow-y: auto;
-              }
-              ::-webkit-scrollbar {
-                width: 6px;
-              }
-              ::-webkit-scrollbar-thumb {
-                background: #ccc;
-                border-radius: 3px;
-              }
-              ::-webkit-scrollbar-track {
-                background: #f9f9f9;
-              }
-            </style>
-          </head>
-          <body>${safeHTML}</body>
-        </html>
-      `);
+                    <html>
+                    <head>
+                        <style>
+                        body {
+                            font-family: system-ui, sans-serif;
+                            font-size: 13px;
+                            color: #1f2937;
+                            margin: 0;
+                            padding: 10px;
+                            background: white;
+                            overflow-y: auto;
+                        }
+                        ::-webkit-scrollbar {
+                            width: 6px;
+                        }
+                        ::-webkit-scrollbar-thumb {
+                            background: #ccc;
+                            border-radius: 3px;
+                        }
+                        ::-webkit-scrollbar-track {
+                            background: #f9f9f9;
+                        }
+                        </style>
+                    </head>
+                    <body>${safeHTML}</body>
+                    </html>
+                `);
             doc.close();
         }
     }, [fullEmail]);
