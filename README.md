@@ -1,6 +1,10 @@
 # QuickTemp
 Temporary email extension for your browser with crazy features that you might have not seen before (i'm just assuming lol)
 
+# Prerequisites
+- NodeJs V20 or above
+- NPM
+
 # Installation
 - Clone the repo:
 ```bash
@@ -15,7 +19,13 @@ npm install
 ```bash
 npm run build
 ```
-It will generate all the required files under `/build`. You can easily test it now.
+It will generate all the required files under `/build`.
+
+## Further steps for testing
+- Now go to `about:debugging#/runtime/this-firefox` on firefox
+- Click on `Load Temporary Add-on...` 
+- Now select `quicktemp-extension/build/manifest.json` from the popup
+You have successfully added the extenion to your Firefox browser for testing.
 
 # Features
 - Good name n logo :)
