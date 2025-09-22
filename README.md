@@ -8,6 +8,7 @@ Temporary email extension for your browser with crazy features that you might ha
 - Notifications for new emails
 - History of your email names
 - Multiple folders for less chaos 
+- Email contents are purified and is opened in a sandbox
 
 # Upcomming featuers
 - Best n most advanced UI with crazy customizations (this will be my USP :)
@@ -35,3 +36,8 @@ This is my first extension in my life, so i'm keeping it real. Using AI only if 
 
 # Who can use?
 - Anyone who has tasty storage left with 'em
+
+# Privacy
+- Whatever email you use could be used by other guys too, so make sure you don't use these temporary emails for personal or imp stuffs.
+- This extension doesn't collect your data in any way
+- Uses your own browser to persist emails
