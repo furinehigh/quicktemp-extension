@@ -1,3 +1,5 @@
+import DOMPurify from 'dompurify';
+
 document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const subject = params.get('subject');
@@ -13,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const contentDiv = document.getElementById('content');
     if (htmlContent) {
-        contentDiv.innerHTML = decodeURIComponent(htmlContent)
+        contentDiv.innerHTML = DOMPurify.sanitize(decodeURIComponent(htmlContent), { USE_PROFILES: { html: true } });
     } else {
         const pre = document.createElement('pre');
         pre.style.fontFamily = 'monospace';
