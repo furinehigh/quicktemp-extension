@@ -1,6 +1,22 @@
 # QuickTemp
 Temporary email extension for your browser with crazy features that you might have not seen before (i'm just assuming lol)
 
+# Installation
+- Clone the repo:
+```bash
+git clone https://github.com/furinehigh/quicktemp-extension.git
+cd quicktemp-extension
+```
+- Install req node modules with:
+```bash
+npm install
+```
+- Build the extension for testing:
+```bash
+npm run build
+```
+It will generate all the required files under `/build`. You can easily test it now.
+
 # Features
 - Good name n logo :)
 - Simple n cool UI for better UX
