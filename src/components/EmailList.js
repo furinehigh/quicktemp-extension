@@ -2,6 +2,7 @@ import React, { useEffect, useState, forwardRef, useImperativeHandle, use } from
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, OctagonAlert, Star, Trash } from "lucide-react";
 import { deleteMessage, fetchMailbox, moveToFolder } from "../utils/api";
+import { useToast } from "../contexts/ToastContext";
 /* global browser */
 let dltEmailId = null;
 if (typeof browser === "undefined") {
@@ -13,6 +14,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState("All");
+  const {addToast} = useToast()
   const perPage = 5;
 
   useImperativeHandle(ref, () => ({
@@ -45,8 +47,9 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
               onClick={() => {
                 deleteMessage(mailbox, emailId).then(() => {
                   setEmails((prev) => prev.filter((em) => em.id !== emailId));
+                  addToast('Email deleted', 'success')
                 }).catch((err) => {
-                  alert("Failed to delete email: " + err);
+                  addToast('Error deleting email', 'error')
                 });
                 onClose();
               }}
@@ -105,6 +108,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
     const res = await moveToFolder(mailbox, emailId, folder)
     if (res.success) {
       loadEmailsForMailbox(mailbox, folder)
+      addToast(`Moved to ${folder}`, 'success')
     }
   }
 

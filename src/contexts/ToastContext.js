@@ -19,13 +19,15 @@ export function ToastProvider({ children }) {
     return (
         <ToastContext.Provider value={{ addToast }}>
             {children}
-            <div className="fixed bottom-4 right-1 space-y-2 z-50">
+            <div className="fixed bottom-4 right-1 space-y-2 z-50 text-xs">
                 <AnimatePresence>
                     {toasts.map((toast) => (
                         <motion.div
-                            initial={{}}
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{x: '100%'}}
                             key={toast.id}
-                            className={`px-4 py-2 rounded-lg shadow-lg transition-all bg-white text-black flex items-center`}
+                            className={`px-4 py-2 rounded shadow-md transition-all bg-white text-black flex items-center`}
                         >
                             <span className="mr-2">
                                 {toast.type == 'info' ? <Info className="inline" size={13} />
