@@ -53,6 +53,9 @@ function App() {
     setSelectedDomain(newEmail.split("@")[1]);
     browser.storage.local.set({ tempEmail: newEmail });
     initWebSocket(newEmail);
+    if (eListRef.current) {
+      eListRef.current.clientRefresh(email)
+    }
   };
 
   return (

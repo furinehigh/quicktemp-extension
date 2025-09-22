@@ -19,6 +19,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
 
   useImperativeHandle(ref, () => ({
     refresh: () => fetchMessages(),
+    clientRefresh: (mailbox) => loadEmailsForMailbox(mailbox)
   }));
 
   const fetchMessages = async () => {
