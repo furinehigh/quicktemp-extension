@@ -102,9 +102,10 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   const Folders = ["All", "Unread", "Starred", "Spam", "Trash"];
 
   const handleFolderChange = async (mailbox, emailId, folder) => {
-    await moveToFolder(mailbox, emailId, folder)
-    console.log('i think the folder is now changed...')
-    loadEmailsForMailbox(mailbox, folder)
+    const res = await moveToFolder(mailbox, emailId, folder)
+    if (res.success) {
+      loadEmailsForMailbox(mailbox, folder)
+    }
   }
 
   return (
@@ -208,7 +209,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
                 </button>
                 <button className="absolute bottom-3 right-[-15px] group-hover:right-11 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
                   e.stopPropagation();
-                  if ((email?.folder || []).includes('Spam')) {
+                 if ((email?.folder || []).includes('Spam')) {
                     handleFolderChange(mailbox, email.id, 'All')
                   } else {
                     handleFolderChange(mailbox, email.id, 'Spam')

@@ -250,6 +250,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     }
                 }
                 await browser.storage.local.set({ savedMessages: updatedMessages })
+                sendResponse({ success: true })
             } catch (err) {
                 console.error("FOLDER_CHANGE error: ", err)
                 sendResponse({ success: false, error: err.message })
