@@ -15,17 +15,6 @@
     ],
     "persistent": true
   },
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "popup.html",
-        "popup.js"
-      ],
-      "matches": [
-        "<all_urls>"
-      ]
-    }
-  ],
   "permissions": [
     "storage",
     "notifications",
