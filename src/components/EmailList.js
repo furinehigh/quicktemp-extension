@@ -103,7 +103,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
 
   const handleFolderChange = async (mailbox, emailId, folder) => {
     const res = await moveToFolder(mailbox, emailId, folder)
-    console.log(res)
+    console.log('res', res)
     const data = await res.json()
     if (data.success) {
       loadEmailsForMailbox(mailbox, folder)
@@ -199,7 +199,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
                 }}>
                   <Trash size={10} className="text-gray-400 hover:text-red-500 transition duration-300" />
                 </button>
-                <button className="absolute bottom-3 right-[-15px] group-hover:right-3 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
+                <button className="absolute bottom-3 right-[-15px] group-hover:right-7 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
                   e.stopPropagation();
                   if ((email?.folder || []).includes('Starred')) {
                     handleFolderChange(mailbox, email.id, 'Unstarred')
@@ -207,9 +207,9 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
                     handleFolderChange(mailbox, email.id, 'Starred')
                   }
                 }}>
-                  <Star size={10} className={`text-gray-400 hover:text-red-500 transition duration-300 ${(email?.folder || []).includes('Starred') ? 'fill-yellow-400' : ''}`} />
+                  <Star size={10} className={`text-gray-400 hover:text-yellow-400 transition duration-300 ${(email?.folder || []).includes('Starred') ? 'fill-yellow-400' : ''}`} />
                 </button>
-                <button className="absolute bottom-3 right-[-15px] group-hover:right-3 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
+                <button className="absolute bottom-3 right-[-15px] group-hover:right-11 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
                   e.stopPropagation();
                   handleFolderChange(mailbox, email.id, 'Spam')
                 }}>

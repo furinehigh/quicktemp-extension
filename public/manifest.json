@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "QuickTemp React",
+  "name": "QuickTemp - Highly customizable temp mail UI",
   "version": "1.0",
-  "description": "A simple cross-browser extension built with React",
+  "description": "An advanced disposalbe email UI for pros",
   "browser_action": {
     "default_popup": "index.html"
   },
