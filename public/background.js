@@ -202,6 +202,19 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 settings = result.settings || {};
                 settings = settings[message.tab]
 
+                if (settings == undefined){
+                    settings = {
+                        spam:{
+                            fScript: `
+                            if (html.includes('spam')){
+                                return true
+                            }
+                            `
+                        }
+                    }
+                    await browser.storage.local.set({settings})
+                }
+
                 sendResponse({ success: true, data: settings });
             } catch (err) {
                 console.error("FETCH_SETTINGS error:", err);
