@@ -1,10 +1,26 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Settings, X } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
+import { getSettings } from '../utils/api'
+import { useToast } from '../contexts/ToastContext'
 
 function Setting() {
     const [open, setOpen] = useState(false)
     const [selectedNav, setSelectedNav] = useState('Spam')
+    const [settings, setSettings] = useState({})
+    const [saved, setSaved] = useState(true)
+    const { addToast } = useToast()
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const res = await getSettings();
+                setSettings(res)
+            } catch (e) {
+                addToast('Error loading settings', 'error')
+            }
+        })();
+    })
 
     const toggleOpen = () => {
         setOpen(!open)
@@ -40,7 +56,10 @@ function Setting() {
                                     className={`px-2 py-1 rounded text-xs border-1 border-gray-300 ${nav === selectedNav ? "bg-blue-500 text-white" : "text-gray-700"
                                         }`}
                                     onClick={() => {
-                                        setSelectedNav(nav);
+                                        if (saved) {
+                                            setSelectedNav(nav);
+
+                                        }
                                     }}
                                 >
                                     {nav}
@@ -55,15 +74,15 @@ function Setting() {
                                             <h1 className='text-sm font-bold'>
                                                 Spam Filter
                                             </h1>
-                                            <p className='text-gray-500'>Edit this script to perform spam filtering</p>
+                                            <p className='text-gray-500'>Edit this script to customize spam filtering</p>
                                         </div>
                                         <div className=''>
-                                            <textarea rows={10} className='w-full max-h-[180px] border border-gray-300 rounded'></textarea>
+                                            <textarea rows={10} value={settings['Spam']?.fScript} className='w-full max-h-[180px] border border-gray-300 rounded'></textarea>
                                             <p className='text-gray-500 text-[10px]'>
-                                                <strong>&#123;from&#125;</strong> : Email from, {' '}
-                                                <strong>&#123;subject&#125;</strong> : Email subject, {' '}
-                                                <strong>&#123;html&#125;</strong> : Email HTML Code, {' '}
-                                                <strong>&#123;text&#125;</strong> : Email Text
+                                                <strong>from</strong> : Email from, {' '}
+                                                <strong>subject</strong> : Email subject, {' '}
+                                                <strong>html</strong> : Email HTML Code, {' '}
+                                                <strong>text</strong> : Email Text
                                             </p>
 
                                         </div>
@@ -75,6 +94,21 @@ function Setting() {
                                 </div>
                             )}
                         </div>
+                        <AnimatePresence>
+                            {!saved &&
+                                <motion.div
+                                    initial={{ opacity: 0, y: '-100%' }}
+                                    animate={{ opacity: 100, y: '0%' }}
+                                    exit={{ opacity: 0, y: '-100%' }}
+                                    className='animate-shake text-xs flex justify-between items-center rounded-t-md border border-b-0'>
+                                    <div>Unsaved changes</div>
+                                    <div className='flex space-x-2'>
+                                        <button className='border rounded border-gray-300 py-1 px-2'>Discard</button>
+                                        <button className='border rounded bg-blue-500 text-white py-1 px-2'>Save</button>
+                                    </div>
+                                </motion.div>
+                            }
+                        </AnimatePresence>
                     </div>
                 </motion.div>
             )}

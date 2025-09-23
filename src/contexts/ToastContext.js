@@ -9,7 +9,12 @@ export function ToastProvider({ children }) {
 
     const addToast = (message, type = 'info', duration = 3000) => {
         const id = Date.now()
-        setToast((prev) => [...prev, { id, message, type }])
+        if (toasts.length > 4) {
+            let updatedToast = toasts.slice(0, 4)
+            setToast(updatedToast)
+        } else {
+            setToast((prev) => [...prev, { id, message, type }])
+        }
 
         setTimeout(() => {
             setToast((prev) => prev.filter(t => t.id !== id))
