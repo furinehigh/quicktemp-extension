@@ -11,6 +11,7 @@ function Setting() {
     }
 
     const navTabs = [
+        'Interface',
         'Spam',
         'Blacklist',
         'Trash'
@@ -36,7 +37,7 @@ function Setting() {
                             {navTabs.map((nav) => (
                                 <button
                                     key={nav}
-                                    className={`px-2 py-1 rounded-md text-xs border-1 border-gray-300 ${nav === selectedNav ? "bg-blue-500 text-white" : "text-gray-700"
+                                    className={`px-2 py-1 rounded text-xs border-1 border-gray-300 ${nav === selectedNav ? "bg-blue-500 text-white" : "text-gray-700"
                                         }`}
                                     onClick={() => {
                                         setSelectedNav(nav);
@@ -56,8 +57,8 @@ function Setting() {
                                             </h1>
                                             <p className='text-gray-500'>Edit this script to perform spam filtering</p>
                                         </div>
-                                        <div >
-                                            <textarea rows={10} className='w-full h-full border border-gray-300 rounded'></textarea>
+                                        <div className=''>
+                                            <textarea rows={10} className='w-full max-h-[180px] border border-gray-300 rounded'></textarea>
                                             <p className='text-gray-500 text-[10px]'>
                                                 <strong>&#123;from&#125;</strong> : Email from, {' '}
                                                 <strong>&#123;subject&#125;</strong> : Email subject, {' '}
@@ -66,9 +67,6 @@ function Setting() {
                                             </p>
 
                                         </div>
-                                        <button>
-                                            
-                                        </button>
                                     </div>
                                 </div>
                             ) : (

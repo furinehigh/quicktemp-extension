@@ -70,6 +70,28 @@ const getEmailHistory = () => {
     })
 };
 
+const getSettings = () => {
+    return new Promise((resolve, reject) => {
+        browser.runtime.sendMessage({ type: "FETCH_SETTINGS" }, (response) => {
+            if (response?.success) {
+                resolve(response.data)
+            }
+            else reject(response?.error || 'Unkown error')
+        })
+    })
+}
+
+const saveSettings = (tab, settings) => {
+    return new Promise((resolve, reject) => {
+        browser.runtime.sendMessage({ type: "SAVE_SETTINGS", tab, settings }, (response) => {
+            if (response?.success) {
+                resolve()
+            }
+            else reject(response?.error || 'Unkown error')
+        })
+    })
+}
+
 const randomString = (length) => {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
@@ -86,4 +108,11 @@ const randomDomain = () => {
 };
 
 
-export { fetchMailbox, randomString, randomDomain, domains, fetchMessage, deleteMessage, initWebSocket, getEmailHistory, moveToFolder };
+export {
+    fetchMailbox, randomString,
+    randomDomain, domains,
+    fetchMessage, deleteMessage, 
+    initWebSocket, getEmailHistory,
+    moveToFolder, getSettings,
+    saveSettings
+};

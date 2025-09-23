@@ -193,6 +193,49 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
 
+    if (message.type === "FETCH_SETTINGS") {
+        (async () => {
+            try {
+
+                let settings = {};
+                const result = await browser.storage.local.get("settings");
+                settings = result.settings || {};
+                settings = settings[message.tab]
+
+                sendResponse({ success: true, data: settings });
+            } catch (err) {
+                console.error("FETCH_SETTINGS error:", err);
+                sendResponse({ success: false, error: err.message });
+            }
+        })();
+
+        return true;
+    }
+
+    if (message.type === "SAVE_SETTINGS") {
+        (async () => {
+            try {
+
+                let settings = {};
+                const result = await browser.storage.local.get("settings");
+                settings = result.settings || {};
+                await browser.storage.local.set({
+                    settings: {
+                        ...settings,
+                        [message.tab]: message.settings
+                    }
+                })
+
+                sendResponse({ success: true });
+            } catch (err) {
+                console.error("SAVE_SETTINGS error:", err);
+                sendResponse({ success: false, error: err.message });
+            }
+        })();
+
+        return true;
+    }
+
     if (message.type === "FOLDER_CHANGE") {
         (async () => {
             try {
@@ -212,27 +255,21 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const moveTo = message.folder;
                 const toSoT = moveTo === "Spam" || moveTo === "Trash";
                 const inSoT = inSpam || inTrash;
-                console.log(moveTo, 'before updates data:', cached.folder)
 
                 if (inAll && toSoT) {
                     const idx = folders.indexOf("All");
                     if (idx !== -1) folders[idx] = moveTo;
-                    console.log('if 1 setisfied', 'updated folders array: ', folders)
                 } else if (inSoT && moveTo === "All") {
                     folders = folders.filter((f) => f !== "Spam" && f !== "Trash");
                     folders.unshift("All");
-                    console.log('if 2 setisfied', 'updated folders array: ', folders)
                 } else if (moveTo === 'Read') {
                     const idx = folders.indexOf("Unread");
                     if (idx !== -1) folders[idx] = moveTo;
-                    console.log('if 3 setisfied', 'updated folders array: ', folders)
                 } else if (moveTo === 'Unstarred') {
                     const idx = folders.indexOf("Starred");
                     if (idx !== -1) folders[idx] = moveTo;
-                    console.log('if 4 setisfied', 'updated folders array: ', folders)
                 } else {
                     folders.push(moveTo);
-                    console.log('if 5 setisfied', 'updated folders array: ', folders)
                 }
 
                 cached = { ...cached, folder: [...new Set(folders)] };

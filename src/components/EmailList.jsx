@@ -120,7 +120,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
           {Folders.map((Folder) => (
             <button
               key={Folder}
-              className={`px-2 py-1 rounded-md text-xs border-1 border-gray-300 ${Folder === selectedFolder ? "bg-blue-500 text-white" : "text-gray-700"
+              className={`px-2 py-1 rounded text-xs border-1 border-gray-300 ${Folder === selectedFolder ? "bg-blue-500 text-white" : "text-gray-700"
                 }`}
               onClick={() => {
                 setSelectedFolder(Folder);
