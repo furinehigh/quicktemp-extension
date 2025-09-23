@@ -2,7 +2,10 @@
 Temporary email extension for your browser with crazy features that you might have not seen before (i'm just assuming lol)
 
 ## Video Demo
-https://github.com/user-attachments/assets/3effd8e2-ca6e-4157-9eb7-692e992ac103
+
+
+https://github.com/user-attachments/assets/b4cac976-7f8f-44ae-9640-1ec14658b477
+
 
 
 
