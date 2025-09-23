@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { Settings, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { getSettings } from '../utils/api'
+import { getSettings, saveSettings } from '../utils/api'
 import { useToast } from '../contexts/ToastContext'
+import isEqual from "lodash/isEqual";
 
 function Setting() {
     const [open, setOpen] = useState(false)
     const [selectedNav, setSelectedNav] = useState('Spam')
     const [settings, setSettings] = useState({})
+    const [currChanges, setCurrChanges] = useState({})
     const [saved, setSaved] = useState(true)
     const [shake, setShake] = useState(false)
     const { addToast } = useToast()
@@ -15,6 +17,11 @@ function Setting() {
     useEffect(() => {
         (async () => {
             try {
+                const { crrChanges, tab } = getCurrChanges()
+                if (crrChanges) {
+                    setSaved(false)
+                    setSelectedNav(tab)
+                }
                 const res = await getSettings();
                 console.log(res)
                 setSettings(res)
@@ -28,13 +35,51 @@ function Setting() {
         setShake(true)
         setTimeout(() => {
             setShake(false)
-        }, 10);
+        }, 400);
     }
+
+    const getCurrChanges = () => {
+        const { currChanges = {} } = browser.storage.local.get('currChanges')
+        let firstKey;
+        if (currChanges) {
+            firstKey = Object.keys(currChanges).find(
+                key => obj[key] !== null && obj[key] !== undefined && obj[key] !== ""
+            );
+        }
+        return { currChanges, firstKey }
+    }
+
+    useEffect(() => {
+        browser.storage.local.set({ currChanges })
+    }, [currChanges])
 
 
     const handleFieldChange = (e) => {
-        const field = e.target.name
         setSaved(false)
+        const field = e.target.name
+        let settingChanges = {
+            ...currChanges,
+            [field]: e.target.value
+        }
+        setCurrChanges(settingChanges)
+    }
+
+    const handleChangesSaved = async () => {
+        const res = await saveSettings(selectedNav, currChanges[selectedNav])
+
+        if (res.success) {
+            addToast('Changes saved', 'success')
+            setSaved(false)
+        } else {
+            addToast('Error ecc while saving', 'error')
+            setSaved(true)
+        }
+    }
+
+    const handleDiscardChanges = () => {
+        let currChanges = {}
+        setCurrChanges(currChanges)
+        browser.storage.local.set({ currChanges })
     }
 
     const navTabs = [
@@ -77,7 +122,7 @@ function Setting() {
                                 </button>
                             ))}
                         </div>
-                        <div className='border rounded p-2 h-full border-gray-300 text-xs'>
+                        <div className=' p-2 h-full text-xs'>
                             {selectedNav == 'Spam' ? (
                                 <div className='flex flex-col space-y-2'>
                                     <div className='border border-gray-300 space-y-2 p-2'>
@@ -114,8 +159,8 @@ function Setting() {
                                     className={`${shake ? 'animate-shake' : ''} absolute bottom-0 z-50 p-2 mx-auto space-x-4 bg-white text-xs flex justify-between items-center rounded-t-md border border-b-0`}>
                                     <div>Unsaved changes</div>
                                     <div className='flex space-x-2 '>
-                                        <button onClick={() => setSaved(true)} className='border rounded border-gray-300 py-1 px-2'>Discard</button>
-                                        <button onClick={() => setSaved(true)} className='border rounded bg-blue-500 text-white py-1 px-2'>Save</button>
+                                        <button onClick={handleDiscardChanges} className='border rounded border-gray-300 py-1 px-2'>Discard</button>
+                                        <button onClick={handleChangesSaved} className='border rounded bg-blue-500 text-white py-1 px-2'>Save</button>
                                     </div>
                                 </motion.div>
                             }

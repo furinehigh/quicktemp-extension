@@ -200,16 +200,14 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 let settings = {};
                 const result = await browser.storage.local.get("settings");
                 settings = result.settings || {};
-                settings = settings[message.tab]
 
                 if (settings == undefined){
                     settings = {
                         spam:{
-                            fScript: `
-                            if (html.includes('spam')){
-                                return true
-                            }
-                            `
+                            fScript: 
+`if (html.includes('spam')){
+    return true
+}`
                         }
                     }
                     await browser.storage.local.set({settings})
