@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Settings, X } from 'lucide-react'
+import { Moon, Settings, Sun, SunMoon, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { getSettings, saveSettings } from '../utils/api'
 import { useToast } from '../contexts/ToastContext'
@@ -32,7 +32,7 @@ function Setting() {
                 } else {
                     console.log('rh 3')
                     const res = await getSettings(selectedNav);
-                    console.log('rh 3 res',res)
+                    console.log('rh 3 res', res)
                     setSettings(res)
                 }
             })
@@ -53,7 +53,7 @@ function Setting() {
     const checkJSONValidity = (json) => {
         try {
             return JSON.parse(json)
-        } catch(e) {
+        } catch (e) {
             return e.message
         }
     }
@@ -85,11 +85,44 @@ function Setting() {
 
 
     const handleFieldChange = (e) => {
-        setSaved(false)
         const field = e.target.name
         let settingChanges = {
             [selectedNav]: {
                 [field]: e.target.value
+            }
+        }
+        if (isEqual(settingChanges, {[selectedNav]: { ...settings[selectedNav] }})) {
+            setSaved(true)
+            setCurrChanges({})
+        } else {
+            setSaved(false)
+        }
+        setCurrChanges(settingChanges)
+    }
+
+    const handleThemeChange = (name, custom = undefined) => {
+        let colors;
+        if (name == 'dark') {
+            colors = {
+                bg: '#000000',
+                text: '#ffffff',
+                btnBg: '#'
+            }
+        } else if (name == 'light'){
+            colors = {
+                bg: '#ffffff',
+                text: '#000000',
+                btnBg: ''
+            }
+        } else {
+            colors = custom
+        }
+        let settingChanges = {
+            Layout: {
+                theme: {
+                    name,
+                    colors
+                }
             }
         }
         setCurrChanges(settingChanges)
@@ -164,7 +197,7 @@ function Setting() {
                                 </button>
                             ))}
                         </div>
-                        <div className=' p-2 h-full text-xs'>
+                        <div className=' p-2 h-full text-xs overflow-y-auto'>
                             {selectedNav == 'Spam' ? (
                                 <div className='flex flex-col space-y-2'>
                                     <div className='border border-gray-300 space-y-2 p-2'>
@@ -177,20 +210,76 @@ function Setting() {
                                         <div className=''>
                                             <textarea rows={10} name='jRules' value={(Object.keys(currChanges).length === 0 || currChanges == undefined) ? settings?.Spam?.jRules : currChanges?.Spam?.jRules} onChange={(e) => {
                                                 const v = checkJSONValidity(e.target.value)
-                                                if (v){
+                                                if (v) {
                                                     setError('')
                                                     handleFieldChange(e)
                                                 } else {
                                                     setError(v)
                                                 }
 
-                                                }} className='w-full max-h-[180px] border border-gray-300 rounded'></textarea>
+                                            }} className='w-full max-h-[180px] border border-gray-300 rounded'></textarea>
                                             <p className='text-gray-500 text-[10px]'>
                                                 <strong>from</strong> : Email from, {' '}
                                                 <strong>subject</strong> : Email subject, {' '}
                                                 <strong>html</strong> : Email HTML Code, {' '}
                                                 <strong>text</strong> : Email Text
                                             </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : selectedNav == 'Layout' ? (
+                                <div className='flex flex-col space-y-2'>
+                                    <div className='border rounded border-gray-300 p-2'>
+                                        <div className='flex justify-between items-center'>
+                                            <div className=''>
+                                                <h1 className='text-sm font-bold'>Theme</h1>
+                                                <p className='text-gray-500'>Choose your preferred theme</p>
+                                            </div>
+                                            <div className='border rounded border-gray-200 flex items-center'>
+                                                <button onClick={() => handleThemeChange('dark')} className={`${settings.Layout.theme.name == 'dark' ? 'bg-gray-200' : ''} border-r border-r-gray-100 p-1`}>
+                                                    <Moon size={14} />
+                                                </button>
+                                                <button onClick={() => handleThemeChange('light')} className={`${settings.Layout.theme.name == 'light' ? 'bg-gray-200' : ''} border-r border-r-gray-100 p-1`}>
+                                                    <Sun size={14} />
+                                                </button>
+                                                <button onClick={() => handleThemeChange('system')} className={`${settings.Layout.theme.name == 'system' ? 'bg-gray-200' : ''} p-1 `}>
+                                                    <SunMoon size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='border rounded border-gray-300 p-2'>
+                                        <div className='flex justify-between items-center'>
+                                            <div className=''>
+                                                <h1 className='text-sm font-bold'>Custom Theme</h1>
+                                                <p className='text-gray-500'>Create your custom theme</p>
+                                            </div>
+                                            <div className='border rounded border-gray-200 flex items-center'>
+                                                {(settings.Layout.customTheme || []).map((t) => (
+                                                    <button style={} className={`rounded-full border w-4 h-4 `}>
+
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='border rounded border-gray-300 p-2'>
+                                        <div className='flex justify-between items-center'>
+                                            <div className=''>
+                                                <h1 className='text-sm font-bold'>Layout</h1>
+                                                <p className='text-gray-500'>Choose your preferred layout</p>
+                                            </div>
+                                            <div className='border rounded border-gray-200 flex items-center'>
+                                                <button className={`border-r border-r-gray-100 p-1`}>
+                                                    <Moon size={14} />
+                                                </button>
+                                                <button className={`border-r border-r-gray-100 p-1`}>
+                                                    <Sun size={14} />
+                                                </button>
+                                                <button className={`p-1 `}>
+                                                    <SunMoon size={14} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -27,13 +27,14 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
     setLoading(true);
     try {
       const res = await fetchMailbox(mailbox, selectedFolder);
-      setEmails(res.data || []);
+      if (res.data){
+        loadEmailsForMailbox(mailbox)
+      }
     } catch (err) {
       console.error(err);
     }
     setLoading(false);
   };
-
 
   const refreshCounts = async () => {
     const counts = await getEmailCounts();

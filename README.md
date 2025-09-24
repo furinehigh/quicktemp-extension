@@ -43,11 +43,11 @@ You have successfully added the extenion to your Firefox browser for testing.
 - History of your email names
 - Multiple folders for less chaos 
 - Email contents are purified and is opened in a sandbox
+- Custom Spam filter
 
 # Upcomming featuers
 - Best n most advanced UI with crazy customizations (this will be my USP :)
 - Search through your emails
-- Custom Spam filter
 - Auto deletion of emails
 
 # Permissions needed for this extension

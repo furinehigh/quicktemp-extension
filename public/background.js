@@ -45,7 +45,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         [message.address]: {
                             data: data.data.map((e) => ({
                                 ...e,
-                                folder: spamFilter(e.html, e.from, e.text, e.subject) == true ? ['Spam', 'Unread'] : (e?.folder || []).length !== 0 ? e?.folder : ['Inbox', 'Unread']
+                                folder: (e?.folder || []).length !== 0 ? e?.folder : ['Inbox', 'Unread']
                             })), timestamp: Date.now()
                         }
                     }
@@ -395,7 +395,7 @@ async function initWebSocket() {
             counts.Inbox = (counts.Inbox || 0) + 1;
         }
         await browser.storage.local.set({ emailCounts: counts })
-        data = { ...data, folder: isSpam == true ? ['Spam', 'Unread'] : ['Inbox', 'Unread'] }
+        data = { ...data, folder: isSpam ? ['Spam', 'Unread'] : ['Inbox', 'Unread'] }
 
         if (data.mailbox && savedMessages[data.mailbox]?.data) {
             const existingIds = new Set(savedMessages[data.mailbox].data.map(msg => msg.id));
@@ -435,10 +435,10 @@ const spamFilter = async (html, from, text, subject) => {
 
     if (!jRules) return false;
 
-    return applyRules({ html, from, text, subject }, jRules);
+    return applySpamRules({ html, from, text, subject }, jRules);
 };
 
-function applyRules(ctx, rules) {
+function applySpamRules(ctx, rules) {
     for (const rule of rules) {
         if (ctx[rule.field]?.includes(rule.includes)) {
             return rule.return;
