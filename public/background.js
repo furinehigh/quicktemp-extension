@@ -200,10 +200,14 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 let settings = {};
                 const result = await browser.storage.local.get("settings");
                 settings = result.settings || {};
+                settings = {
+                    [message.tab]: settings[message.tab]
+                }
+                console.log('from bg.js', settings)
 
-                if (settings == undefined){
+                if (settings[message.tab] == undefined){
                     settings = {
-                        spam:{
+                        Spam:{
                             fScript: 
 `if (html.includes('spam')){
     return true

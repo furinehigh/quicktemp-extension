@@ -36,7 +36,7 @@ It will generate all the required files under `/build`.
 You have successfully added the extenion to your Firefox browser for testing.
 
 # Features
-- Good name n logo :)
+- Good name n logo (at least i think so 👀)
 - Simple n cool UI for better UX
 - Persistent mailbox name and its messages
 - Notifications for new emails

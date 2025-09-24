@@ -70,9 +70,9 @@ const getEmailHistory = () => {
     })
 };
 
-const getSettings = () => {
+const getSettings = (tab) => {
     return new Promise((resolve, reject) => {
-        browser.runtime.sendMessage({ type: "FETCH_SETTINGS" }, (response) => {
+        browser.runtime.sendMessage({ type: "FETCH_SETTINGS", tab }, (response) => {
             if (response?.success) {
                 resolve(response.data)
             }
@@ -85,7 +85,7 @@ const saveSettings = (tab, settings) => {
     return new Promise((resolve, reject) => {
         browser.runtime.sendMessage({ type: "SAVE_SETTINGS", tab, settings }, (response) => {
             if (response?.success) {
-                resolve()
+                resolve(response)
             }
             else reject(response?.error || 'Unkown error')
         })

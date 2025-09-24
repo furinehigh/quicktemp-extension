@@ -4,10 +4,15 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { getSettings, saveSettings } from '../utils/api'
 import { useToast } from '../contexts/ToastContext'
 import isEqual from "lodash/isEqual";
-
+import { capitalizeFirst } from '../utils/utils'
+/* global browser */
+if (typeof browser === "undefined") {
+    /* global chrome */
+    var browser = chrome;
+}
 function Setting() {
     const [open, setOpen] = useState(false)
-    const [selectedNav, setSelectedNav] = useState('Spam')
+    const [selectedNav, setSelectedNav] = useState('Layout')
     const [settings, setSettings] = useState({})
     const [currChanges, setCurrChanges] = useState({})
     const [saved, setSaved] = useState(true)
@@ -15,21 +20,26 @@ function Setting() {
     const { addToast } = useToast()
 
     useEffect(() => {
-        (async () => {
-            try {
-                const { crrChanges, tab } = getCurrChanges()
-                if (crrChanges) {
+        try {
+            getCurrChanges(async ({ currChanges, firstKey }) => {
+                console.log('rh 1')
+                if (currChanges !== undefined && navTabs.includes(firstKey)) {
+                    console.log('rh 2')
                     setSaved(false)
-                    setSelectedNav(tab)
+                    setSelectedNav(capitalizeFirst(firstKey))
+                    setCurrChanges(currChanges)
+                } else {
+                    console.log('rh 3')
+                    const res = await getSettings(selectedNav);
+                    console.log(res)
+                    setSettings(res)
                 }
-                const res = await getSettings();
-                console.log(res)
-                setSettings(res)
-            } catch (e) {
-                addToast('Error loading settings', 'error')
-            }
-        })();
-    }, [])
+            })
+        } catch (e) {
+            console.log(e)
+            addToast('Error loading settings', 'error')
+        }
+    }, [selectedNav])
 
     const handleShake = () => {
         setShake(true)
@@ -38,18 +48,28 @@ function Setting() {
         }, 400);
     }
 
-    const getCurrChanges = () => {
-        const { currChanges = {} } = browser.storage.local.get('currChanges')
-        let firstKey;
-        if (currChanges) {
-            firstKey = Object.keys(currChanges).find(
-                key => obj[key] !== null && obj[key] !== undefined && obj[key] !== ""
-            );
-        }
-        return { currChanges, firstKey }
-    }
+    const getCurrChanges = (cb) => {
+        browser.storage.local.get(["currChanges"], (res) => {
+            const currChanges = res.currChanges;
+            let firstKey;
+
+            if (currChanges !== undefined) {
+                firstKey = Object.keys(currChanges).find(
+                    key =>
+                        currChanges[key] !== null &&
+                        currChanges[key] !== undefined &&
+                        currChanges[key] !== ""
+                );
+            }
+
+            console.log("currChanges, firstKey", currChanges, firstKey);
+            cb({ currChanges, firstKey });
+        });
+    };
+
 
     useEffect(() => {
+        console.log('saving crr changes to local storage')
         browser.storage.local.set({ currChanges })
     }, [currChanges])
 
@@ -58,28 +78,41 @@ function Setting() {
         setSaved(false)
         const field = e.target.name
         let settingChanges = {
-            ...currChanges,
-            [field]: e.target.value
+            [selectedNav]: {
+                [field]: e.target.value
+            }
         }
         setCurrChanges(settingChanges)
     }
 
     const handleChangesSaved = async () => {
         const res = await saveSettings(selectedNav, currChanges[selectedNav])
+        setSettings({
+            ...settings,
+            [selectedNav]: currChanges[selectedNav]
+        })
 
         if (res.success) {
             addToast('Changes saved', 'success')
-            setSaved(false)
+            setSaved(true)
+            setCurrChanges({})
         } else {
             addToast('Error ecc while saving', 'error')
-            setSaved(true)
+            setSaved(false)
         }
     }
 
     const handleDiscardChanges = () => {
-        let currChanges = {}
-        setCurrChanges(currChanges)
-        browser.storage.local.set({ currChanges })
+        setCurrChanges({})
+    }
+
+    const handleNavChange = (nav) => {
+        if (saved) {
+            setCurrChanges({})
+            setSelectedNav(nav)
+        } else {
+            handleShake()
+        }
     }
 
     const navTabs = [
@@ -114,9 +147,7 @@ function Setting() {
                                     key={nav}
                                     className={`px-2 py-1 rounded text-xs border-1 border-gray-300 ${nav === selectedNav ? "bg-blue-500 text-white" : "text-gray-700"
                                         }`}
-                                    onClick={() => {
-                                        if (saved) setSelectedNav(nav); else handleShake()
-                                    }}
+                                    onClick={() => handleNavChange(nav)}
                                 >
                                     {nav}
                                 </button>
@@ -133,7 +164,7 @@ function Setting() {
                                             <p className='text-gray-500'>Edit this script to customize spam filtering</p>
                                         </div>
                                         <div className=''>
-                                            <textarea rows={10} name='fScript' value={settings?.spam?.fScript} onChange={handleFieldChange} className='w-full max-h-[180px] border border-gray-300 rounded'></textarea>
+                                            <textarea rows={10} name='fScript' value={currChanges?.Spam?.fScript || settings?.Spam.fScript} onChange={handleFieldChange} className='w-full max-h-[180px] border border-gray-300 rounded'></textarea>
                                             <p className='text-gray-500 text-[10px]'>
                                                 <strong>from</strong> : Email from, {' '}
                                                 <strong>subject</strong> : Email subject, {' '}
