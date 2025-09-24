@@ -1,7 +1,7 @@
 import React, { useEffect, useState, forwardRef, useImperativeHandle, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, OctagonAlert, Star, Trash } from "lucide-react";
-import { deleteMessage, fetchMailbox, moveToFolder } from "../utils/api";
+import { deleteMessage, fetchMailbox, moveToFolder, getEmailCounts } from "../utils/api";
 import { useToast } from "../contexts/ToastContext";
 /* global browser */
 let dltEmailId = null;
@@ -14,7 +14,8 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState("Inbox");
-  const {addToast} = useToast()
+  const [emailCounts, setEmailCounts] = useState({})
+  const { addToast } = useToast()
   const perPage = 5;
 
   useImperativeHandle(ref, () => ({
@@ -32,6 +33,16 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
     }
     setLoading(false);
   };
+
+
+  const refreshCounts = async () => {
+    const counts = await getEmailCounts();
+    setEmailCounts(counts)
+  };
+
+  useEffect(() => {
+    refreshCounts()
+  }, [])
 
   const DeleteDialog = ({ emailId, onClose }) => {
     return (
@@ -65,8 +76,6 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
       </motion.div>
     );
   };
-
-  // Load emails from browser storage
   const loadEmailsForMailbox = (mb, folder = '') => {
     if (!mb) {
       setEmails([]);
@@ -85,12 +94,12 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
     loadEmailsForMailbox(mailbox);
   }, [mailbox]);
 
-  // Listen for new messages
   useEffect(() => {
     const listener = (msg) => {
       if (msg.type === "NEW_MESSAGE") {
         setEmails((prev) => [msg.data, ...prev]);
         setCurrentPage(1);
+        refreshCounts()
         const audio = new Audio("/new-email.mp3");
         audio.play().catch(() => console.log("Autoplay blocked until user interacts."));
       }
@@ -110,17 +119,18 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
     if (res.success) {
       loadEmailsForMailbox(mailbox)
       addToast(`Moved to ${folder}`, 'success')
+      refreshCounts()
     }
   }
 
   return (
     <div className="email-list mt-4">
       <div className="flex justify-between items-center mb-2">
-        <div className="flex space-x-2">
+        <div className="flex space-x-1">
           {Folders.map((Folder) => (
             <button
               key={Folder}
-              className={`px-2 py-1 rounded text-xs border-1 border-gray-300 ${Folder === selectedFolder ? "bg-blue-500 text-white" : "text-gray-700"
+              className={`px-1 py-0.5 rounded text-xs border border-gray-300 ${Folder === selectedFolder ? "bg-blue-500 text-white" : "text-gray-700"
                 }`}
               onClick={() => {
                 setSelectedFolder(Folder);
@@ -128,6 +138,9 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
               }}
             >
               {Folder}
+              <span className={`${selectedFolder == Folder ? 'text-white' : 'text-blue-500'} font-bold ml-1 `}>
+                {emailCounts[Folder]}
+              </span>
             </button>
           ))}
         </div>
@@ -214,7 +227,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
                 </button>
                 <button className="absolute bottom-3 right-[-15px] group-hover:right-11 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
                   e.stopPropagation();
-                 if ((email?.folder || []).includes('Spam')) {
+                  if ((email?.folder || []).includes('Spam')) {
                     handleFolderChange(mailbox, email.id, 'Inbox')
                   } else {
                     handleFolderChange(mailbox, email.id, 'Spam')

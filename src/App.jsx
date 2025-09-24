@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Header from "./components/Header";
 import EmailList from "./components/EmailList";
 import EmailView from "./components/EmailView";
-import { fetchMailbox, randomDomain, randomString, domains, initWebSocket } from "./utils/api";
+import { randomDomain, randomString, domains, initWebSocket } from "./utils/api";
 import { Check, Copy, History, RefreshCcw, Shuffle } from "lucide-react";
 import HistoryModal from "./components/History";
 import { ToastProvider } from "./contexts/ToastContext";
@@ -44,6 +44,7 @@ function App() {
         initWebSocket(newEmail)
       }
     });
+
   }, []);
 
 

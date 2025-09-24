@@ -198,7 +198,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
 
-    if (message.type === 'EMAIL_COUNTS'){
+    if (message.type === 'EMAIL_COUNTS') {
         (async () => {
             try {
                 let counts = {
@@ -211,17 +211,18 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const result = await browser.storage.local.get('emailCounts')
                 const emailCounts = result.emailCounts || {};
 
-                if (emailCounts === undefined) {
-                    await browser.storage.local.set({emailCounts: counts})
-                } else{
+                if (Object.keys(result).length !== 0) {
                     counts = emailCounts
                 }
 
-                return counts
+                sendResponse({ success: true, data: counts })
             } catch (e) {
-                sendResponse({success: false, error: e.message})
+                console.error('EMAIL_COUNTS error: ', e)
+                sendResponse({ success: false, error: e.message })
             }
         })();
+
+        return true
     }
 
     if (message.type === "FETCH_SETTINGS") {
@@ -292,29 +293,37 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const toSoT = moveTo === "Spam" || moveTo === "Trash";
                 const inSoT = inSpam || inTrash;
 
+                const incCounts = (f) => {
+                    emailCounts[f] = (emailCounts[f] || 0) + 1
+                }
+
+                const decCounts = (f) => {
+                    emailCounts[f] = (emailCounts[f] || 0) - 1
+                }
+
                 if (inInbox && toSoT) {
                     const idx = folders.indexOf("Inbox");
                     if (idx !== -1) folders[idx] = moveTo;
-                    emailCounts.Inbox -= 1
-                    emailCounts[moveTo] += 1
+                    decCounts('Inbox')
+                    incCounts(moveTo)
                 } else if (inSoT && moveTo === "Inbox") {
                     folders = folders.filter((f) => f !== "Spam" && f !== "Trash");
                     folders.unshift("Inbox");
-                    emailCounts[moveTo] -= 1
-                    emailCounts.Inbox += 1
+                    decCounts(moveTo)
+                    incCounts('Inbox')
                 } else if (moveTo === 'Read') {
                     const idx = folders.indexOf("Unread");
                     if (idx !== -1) folders[idx] = moveTo;
-                    emailCounts.Unread -= 1
-                    emailCounts.Read += 1
+                    decCounts('Unread')
+                    incCounts('Read')
                 } else if (moveTo === 'Unstarred') {
                     const idx = folders.indexOf("Starred");
                     if (idx !== -1) folders[idx] = moveTo;
-                    emailCounts.Unstarred += 1
-                    emailCounts.Starred -= 1
+                    decCounts('Starred')
+                    incCounts('Unstarred')
                 } else {
                     folders.push(moveTo);
-                    emailCounts[moveTo] += 1
+                    incCounts(moveTo)
                 }
 
                 cached = { ...cached, folder: [...new Set(folders)] };
@@ -329,7 +338,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     }
                 }
                 await browser.storage.local.set({ savedMessages: updatedMessages })
-                await browser.storage.local.set({emailCounts})
+                await browser.storage.local.set({ emailCounts })
                 sendResponse({ success: true })
             } catch (err) {
                 console.error("FOLDER_CHANGE error: ", err)
@@ -377,13 +386,15 @@ async function initWebSocket() {
         const isSpam = await spamFilter(data.html, data.from, data.text, data.subject)
         let counts = await browser.storage.local.get('emailCounts')
         counts = counts.emailCounts || {}
-        counts.Unread += 1
-        if (isSpam){
-            counts.Spam += 1
+
+        counts.Unread = (counts.Unread || 0) + 1;
+
+        if (isSpam) {
+            counts.Spam = (counts.Spam || 0) + 1;
         } else {
-            counts.Inbox += 1
+            counts.Inbox = (counts.Inbox || 0) + 1;
         }
-        await browser.storage.local.set({emailCounts: counts})
+        await browser.storage.local.set({ emailCounts: counts })
         data = { ...data, folder: isSpam == true ? ['Spam', 'Unread'] : ['Inbox', 'Unread'] }
 
         if (data.mailbox && savedMessages[data.mailbox]?.data) {
@@ -424,14 +435,33 @@ const spamFilter = async (html, from, text, subject) => {
 
     if (!jRules) return false;
 
-    return applyRules({ html, from, text, subject },jRules );
+    return applyRules({ html, from, text, subject }, jRules);
 };
 
 function applyRules(ctx, rules) {
-  for (const rule of rules) {
-    if (ctx[rule.field]?.includes(rule.includes)) {
-      return rule.return;
+    for (const rule of rules) {
+        if (ctx[rule.field]?.includes(rule.includes)) {
+            return rule.return;
+        }
     }
-  }
-  return false;
+    return false;
 }
+
+async function initExtension() {
+    let counts = {
+        Inbox: 0,
+        Unread: 0,
+        Starred: 0,
+        Spam: 0,
+        Trash: 0,
+        Read: 0,
+        Unstarred: 0
+    }
+    let result = await browser.storage.local.get('emailCounts')
+    result = result.emailCounts
+    if (result === undefined || Object.keys(result).length == 0) {
+        await browser.storage.local.set({emailCounts: counts})
+    }
+}
+
+initExtension()

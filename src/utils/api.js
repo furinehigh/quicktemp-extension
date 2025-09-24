@@ -92,10 +92,10 @@ const saveSettings = (tab, settings) => {
     })
 }
 
-const emailCounts = () => {
-    return new Promise ((resolve, reject) => {
+const getEmailCounts = () => {
+    return new Promise((resolve, reject) => {
         browser.runtime.sendMessage({type: "EMAIL_COUNTS"}, (response) => {
-            if (response.success) resolve(response.data)
+            if (response?.success) resolve(response?.data)
                 else reject(response?.error || 'Unkown error')
         })
     })
@@ -123,5 +123,5 @@ export {
     fetchMessage, deleteMessage, 
     initWebSocket, getEmailHistory,
     moveToFolder, getSettings,
-    saveSettings
+    saveSettings, getEmailCounts
 };
