@@ -54,7 +54,7 @@ function Setting() {
         try {
             return JSON.parse(json)
         } catch(e) {
-            return e
+            return e.message
         }
     }
 

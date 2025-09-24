@@ -45,7 +45,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         [message.address]: {
                             data: data.data.map((e) => ({
                                 ...e,
-                                folder: spamFilter(e.html, e.from, e.text, e.subject) == true ? ['Spam', 'Unread'] : (e?.folder || []).length !== 0 ? e?.folder : ['All', 'Unread']
+                                folder: spamFilter(e.html, e.from, e.text, e.subject) == true ? ['Spam', 'Unread'] : (e?.folder || []).length !== 0 ? e?.folder : ['Inbox', 'Unread']
                             })), timestamp: Date.now()
                         }
                     }
@@ -198,6 +198,32 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
 
+    if (message.type === 'EMAIL_COUNTS'){
+        (async () => {
+            try {
+                let counts = {
+                    Inbox: 0,
+                    Unread: 0,
+                    Starred: 0,
+                    Spam: 0,
+                    Trash: 0
+                }
+                const result = await browser.storage.local.get('emailCounts')
+                const emailCounts = result.emailCounts || {};
+
+                if (emailCounts === undefined) {
+                    await browser.storage.local.set({emailCounts: counts})
+                } else{
+                    counts = emailCounts
+                }
+
+                return counts
+            } catch (e) {
+                sendResponse({success: false, error: e.message})
+            }
+        })();
+    }
+
     if (message.type === "FETCH_SETTINGS") {
         (async () => {
             try {
@@ -250,13 +276,15 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const { savedMessages } = await browser.storage.local.get("savedMessages") || { savedMessages: {} };
                 const mailboxData = savedMessages?.[message.address]?.data || [];
                 const cachedIndex = mailboxData.findIndex((msg) => msg.id === message.id);
+                let emailCounts = await browser.storage.local.get('emailCounts')
+                emailCounts = emailCounts.emailCounts || {}
 
                 if (cachedIndex === -1) return;
 
                 let cached = mailboxData[cachedIndex];
 
                 let folders = cached.folder;
-                const inAll = folders.includes("All");
+                const inInbox = folders.includes("Inbox");
                 const inSpam = folders.includes("Spam");
                 const inTrash = folders.includes("Trash");
 
@@ -264,20 +292,29 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const toSoT = moveTo === "Spam" || moveTo === "Trash";
                 const inSoT = inSpam || inTrash;
 
-                if (inAll && toSoT) {
-                    const idx = folders.indexOf("All");
+                if (inInbox && toSoT) {
+                    const idx = folders.indexOf("Inbox");
                     if (idx !== -1) folders[idx] = moveTo;
-                } else if (inSoT && moveTo === "All") {
+                    emailCounts.Inbox -= 1
+                    emailCounts[moveTo] += 1
+                } else if (inSoT && moveTo === "Inbox") {
                     folders = folders.filter((f) => f !== "Spam" && f !== "Trash");
-                    folders.unshift("All");
+                    folders.unshift("Inbox");
+                    emailCounts[moveTo] -= 1
+                    emailCounts.Inbox += 1
                 } else if (moveTo === 'Read') {
                     const idx = folders.indexOf("Unread");
                     if (idx !== -1) folders[idx] = moveTo;
+                    emailCounts.Unread -= 1
+                    emailCounts.Read += 1
                 } else if (moveTo === 'Unstarred') {
                     const idx = folders.indexOf("Starred");
                     if (idx !== -1) folders[idx] = moveTo;
+                    emailCounts.Unstarred += 1
+                    emailCounts.Starred -= 1
                 } else {
                     folders.push(moveTo);
+                    emailCounts[moveTo] += 1
                 }
 
                 cached = { ...cached, folder: [...new Set(folders)] };
@@ -292,6 +329,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     }
                 }
                 await browser.storage.local.set({ savedMessages: updatedMessages })
+                await browser.storage.local.set({emailCounts})
                 sendResponse({ success: true })
             } catch (err) {
                 console.error("FOLDER_CHANGE error: ", err)
@@ -335,7 +373,18 @@ async function initWebSocket() {
 
         const result = await browser.storage.local.get("savedMessages");
         const savedMessages = result.savedMessages || {};
-        data = { ...data, folder: await spamFilter(data.html, data.from, data.text, data.subject) == true ? ['Spam', 'Unread'] : ['All', 'Unread'] }
+
+        const isSpam = await spamFilter(data.html, data.from, data.text, data.subject)
+        let counts = await browser.storage.local.get('emailCounts')
+        counts = counts.emailCounts || {}
+        counts.Unread += 1
+        if (isSpam){
+            counts.Spam += 1
+        } else {
+            counts.Inbox += 1
+        }
+        await browser.storage.local.set({emailCounts: counts})
+        data = { ...data, folder: isSpam == true ? ['Spam', 'Unread'] : ['Inbox', 'Unread'] }
 
         if (data.mailbox && savedMessages[data.mailbox]?.data) {
             const existingIds = new Set(savedMessages[data.mailbox].data.map(msg => msg.id));

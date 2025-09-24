@@ -13,7 +13,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   const [emails, setEmails] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [selectedFolder, setSelectedFolder] = useState("All");
+  const [selectedFolder, setSelectedFolder] = useState("Inbox");
   const {addToast} = useToast()
   const perPage = 5;
 
@@ -103,7 +103,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   const startIndex = (currentPage - 1) * perPage;
   const currentEmails = emails.slice(startIndex, startIndex + perPage);
 
-  const Folders = ["All", "Unread", "Starred", "Spam", "Trash"];
+  const Folders = ["Inbox", "Unread", "Starred", "Spam", "Trash"];
 
   const handleFolderChange = async (mailbox, emailId, folder) => {
     const res = await moveToFolder(mailbox, emailId, folder)
@@ -215,7 +215,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
                 <button className="absolute bottom-3 right-[-15px] group-hover:right-11 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
                   e.stopPropagation();
                  if ((email?.folder || []).includes('Spam')) {
-                    handleFolderChange(mailbox, email.id, 'All')
+                    handleFolderChange(mailbox, email.id, 'Inbox')
                   } else {
                     handleFolderChange(mailbox, email.id, 'Spam')
                   }
