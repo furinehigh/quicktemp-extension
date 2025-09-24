@@ -67,14 +67,14 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   };
 
   // Load emails from browser storage
-  const loadEmailsForMailbox = (mb, folder = 'All') => {
+  const loadEmailsForMailbox = (mb, folder = '') => {
     if (!mb) {
       setEmails([]);
       return;
     }
     browser.storage.local.get(["savedMessages"], (res) => {
       let saved = res.savedMessages?.[mb]?.data || [];
-      saved = saved.filter(e => e.folder.includes(folder))
+      saved = saved.filter(e => e.folder.includes(folder == '' ? selectedFolder : folder))
       const sorted = [...saved].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
       setEmails(sorted);
       setCurrentPage(1);
@@ -108,7 +108,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   const handleFolderChange = async (mailbox, emailId, folder) => {
     const res = await moveToFolder(mailbox, emailId, folder)
     if (res.success) {
-      loadEmailsForMailbox(mailbox, folder)
+      loadEmailsForMailbox(mailbox)
       addToast(`Moved to ${folder}`, 'success')
     }
   }

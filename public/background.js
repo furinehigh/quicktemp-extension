@@ -4,6 +4,11 @@ if (typeof browser === "undefined") {
     var browser = chrome;
 }
 
+async function getActiveTabId() {
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+    return tab?.id;
+}
+
 const API_KEY = '2a6819691fmshb9cf5179a87ac31p145ea2jsn136a1fc2af63'
 const API_HOST = "temp-mail-maildrop1.p.rapidapi.com";
 
@@ -40,7 +45,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         [message.address]: {
                             data: data.data.map((e) => ({
                                 ...e,
-                                folder: (e?.folder || []).length !== 0 ? e?.folder : ['All', 'Unread']
+                                folder: spamFilter(e.html, e.from, e.text, e.subject) == true ? ['Spam', 'Unread'] : (e?.folder || []).length !== 0 ? e?.folder : ['All', 'Unread']
                             })), timestamp: Date.now()
                         }
                     }
@@ -203,19 +208,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 settings = {
                     [message.tab]: settings[message.tab]
                 }
-                console.log('from bg.js', settings)
-
-                if (settings[message.tab] == undefined){
-                    settings = {
-                        Spam:{
-                            fScript: 
-`if (html.includes('spam')){
-    return true
-}`
-                        }
-                    }
-                    await browser.storage.local.set({settings})
-                }
+                console.log('from bg.js', message.tab, settings[message.tab])
 
                 sendResponse({ success: true, data: settings });
             } catch (err) {
@@ -342,7 +335,7 @@ async function initWebSocket() {
 
         const result = await browser.storage.local.get("savedMessages");
         const savedMessages = result.savedMessages || {};
-        data = {...data, folder: ['All', 'Unread']}
+        data = { ...data, folder: await spamFilter(data.html, data.from, data.text, data.subject) == true ? ['Spam', 'Unread'] : ['All', 'Unread'] }
 
         if (data.mailbox && savedMessages[data.mailbox]?.data) {
             const existingIds = new Set(savedMessages[data.mailbox].data.map(msg => msg.id));
@@ -371,5 +364,25 @@ async function initWebSocket() {
     };
 }
 
-// Open socket when extension loads
+// open socket when extension loads up
 initWebSocket();
+
+const spamFilter = async (html, from, text, subject) => {
+    let settings = await browser.storage.local.get("settings");
+    settings = settings.settings || {};
+    console.log(settings.Spam?.jRules)
+    const jRules = JSON.parse(settings.Spam?.jRules || "");
+
+    if (!jRules) return false;
+
+    return applyRules({ html, from, text, subject },jRules );
+};
+
+function applyRules(ctx, rules) {
+  for (const rule of rules) {
+    if (ctx[rule.field]?.includes(rule.includes)) {
+      return rule.return;
+    }
+  }
+  return false;
+}

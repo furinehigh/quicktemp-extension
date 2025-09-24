@@ -12,11 +12,12 @@ if (typeof browser === "undefined") {
 }
 function Setting() {
     const [open, setOpen] = useState(false)
-    const [selectedNav, setSelectedNav] = useState('Layout')
+    const [selectedNav, setSelectedNav] = useState('Spam')
     const [settings, setSettings] = useState({})
     const [currChanges, setCurrChanges] = useState({})
     const [saved, setSaved] = useState(true)
     const [shake, setShake] = useState(false)
+    const [error, setError] = useState('')
     const { addToast } = useToast()
 
     useEffect(() => {
@@ -31,7 +32,7 @@ function Setting() {
                 } else {
                     console.log('rh 3')
                     const res = await getSettings(selectedNav);
-                    console.log(res)
+                    console.log('rh 3 res',res)
                     setSettings(res)
                 }
             })
@@ -46,6 +47,15 @@ function Setting() {
         setTimeout(() => {
             setShake(false)
         }, 400);
+    }
+
+
+    const checkJSONValidity = (json) => {
+        try {
+            return JSON.parse(json)
+        } catch(e) {
+            return e
+        }
     }
 
     const getCurrChanges = (cb) => {
@@ -104,6 +114,7 @@ function Setting() {
 
     const handleDiscardChanges = () => {
         setCurrChanges({})
+        setSaved(true)
     }
 
     const handleNavChange = (nav) => {
@@ -161,17 +172,25 @@ function Setting() {
                                             <h1 className='text-sm font-bold'>
                                                 Spam Filter
                                             </h1>
-                                            <p className='text-gray-500'>Edit this script to customize spam filtering</p>
+                                            <p className='text-gray-500'>Edit or add new JSON rules to customize spam filtering</p>
                                         </div>
                                         <div className=''>
-                                            <textarea rows={10} name='fScript' value={currChanges?.Spam?.fScript || settings?.Spam.fScript} onChange={handleFieldChange} className='w-full max-h-[180px] border border-gray-300 rounded'></textarea>
+                                            <textarea rows={10} name='jRules' value={(Object.keys(currChanges).length === 0 || currChanges == undefined) ? settings?.Spam?.jRules : currChanges?.Spam?.jRules} onChange={(e) => {
+                                                const v = checkJSONValidity(e.target.value)
+                                                if (v){
+                                                    setError('')
+                                                    handleFieldChange(e)
+                                                } else {
+                                                    setError(v)
+                                                }
+
+                                                }} className='w-full max-h-[180px] border border-gray-300 rounded'></textarea>
                                             <p className='text-gray-500 text-[10px]'>
                                                 <strong>from</strong> : Email from, {' '}
                                                 <strong>subject</strong> : Email subject, {' '}
                                                 <strong>html</strong> : Email HTML Code, {' '}
                                                 <strong>text</strong> : Email Text
                                             </p>
-
                                         </div>
                                     </div>
                                 </div>
@@ -181,6 +200,7 @@ function Setting() {
                                 </div>
                             )}
                         </div>
+                        {error && <p className='text-red-400'>{error}</p>}
                         <AnimatePresence>
                             {!saved &&
                                 <motion.div

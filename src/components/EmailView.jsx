@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { fetchMessage } from "../utils/api";
 import DOMPurify from "dompurify";
-import { CopyPlus, X } from "lucide-react";
+import { CopyPlus, OctagonAlert, X } from "lucide-react";
 /* global browser */
 if (typeof browser === "undefined") {
     /* global chrome */
@@ -110,6 +110,10 @@ export default function EmailView({ email, onClose }) {
         >
             <div className="bg-white rounded shadow-md p-3 w-full h-[400px] flex flex-col">
                 {/* Header */}
+                {email.folder.includes('Spam') && <div className="flex items-center space-x-2 p-2 bg-gray-400 text-white text-xs">
+                    <OctagonAlert size={16} className="inline text-red-500" />
+                    <p>This message was marked as Spam by the spam filtering script</p>
+                </div>}
                 <div className="flex justify-between items-center mb-1">
                     <h2 className="font-semibold text-sm leading-tight truncate pr-2">
                         {email.subject || "(No Subject)"}
