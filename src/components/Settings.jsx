@@ -162,7 +162,7 @@ function Setting() {
                     exit={{ opacity: 0, y: 10 }}
                     className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50"
                 >
-                    <div className="bg-bg rounded p-3 w-full h-[400px] flex flex-col overflow-hidden relative">
+                    <div className="bg-bg rounded border border-bbg p-3 w-full h-[400px] flex flex-col overflow-hidden relative">
 
                         <div className='flex  justify-between items-center'>
                             <h3 className="text-lg font-semibold mb-2">Settings</h3>
@@ -175,7 +175,7 @@ function Setting() {
                             {navTabs.map((nav) => (
                                 <button
                                     key={nav}
-                                    className={`px-2 py-1 rounded text-xs border-1 border-bbg ${nav === selectedNav ? "bg-blue-500 text-white" : "text-gray-700"
+                                    className={`px-2 py-1 rounded text-xs border-1 border-bbg ${nav === selectedNav ? "bg-blue-500 text-white" : "text-fg"
                                         }`}
                                     onClick={() => handleNavChange(nav)}
                                 >
@@ -221,14 +221,14 @@ function Setting() {
                                                 <h1 className='text-sm font-bold'>Theme</h1>
                                                 <p className='text-gray-500'>Choose your preferred theme</p>
                                             </div>
-                                            <div className='border rounded border-gray-200 flex items-center'>
-                                                <button onClick={() => handleThemeChange('dark')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == 'dark' : settings?.Layout?.theme?.active == 'dark') ? 'bg-gray-200' : ''} border-r border-r-gray-100 p-1`}>
+                                            <div className='border rounded border-bbg flex items-center'>
+                                                <button onClick={() => handleThemeChange('dark')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == 'dark' : settings?.Layout?.theme?.active == 'dark') ? 'bg-bbg' : ''} border-r border-r-bbg p-1`}>
                                                     <Moon size={14} />
                                                 </button>
-                                                <button onClick={() => handleThemeChange('light')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == 'light' : settings?.Layout?.theme?.active == 'light') ? 'bg-gray-200' : ''} border-r border-r-gray-100 p-1`}>
+                                                <button onClick={() => handleThemeChange('light')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == 'light' : settings?.Layout?.theme?.active == 'light') ? 'bg-bbg' : ''} border-r border-r-bbg p-1`}>
                                                     <Sun size={14} />
                                                 </button>
-                                                <button onClick={() => handleThemeChange('system')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == 'system' : settings?.Layout?.theme?.active == 'system') ? 'bg-gray-200' : ''} p-1 `}>
+                                                <button onClick={() => handleThemeChange('system')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == 'system' : settings?.Layout?.theme?.active == 'system') ? 'bg-bbg' : ''} p-1 `}>
                                                     <SunMoon size={14} />
                                                 </button>
                                             </div>
@@ -240,12 +240,12 @@ function Setting() {
                                                 <h1 className='text-sm font-bold'>Custom Theme</h1>
                                                 <p className='text-gray-500'>Create your custom theme</p>
                                             </div>
-                                            <div className='border rounded border-gray-200 flex items-center'>
+                                            <div className='border rounded border-bbg flex items-center'>
                                                 {(currChanges?.Layout?.customTheme || settings?.Layout?.customTheme || []).map((t) => (
                                                     <button style={{ backgroundColor: t.color.bgColor, borderColor: t.borderColor }} className={`rounded-full border w-4 h-4 `}>
                                                     </button>
                                                 ))}
-                                                <button className={`rounded-full border border-bbg bg-white p-1`}>
+                                                <button className={`rounded-full border border-bbg bg-bg p-1`}>
                                                     <Plus size={10} />
                                                 </button>
                                             </div>
@@ -257,8 +257,7 @@ function Setting() {
                                                 <h1 className='text-sm font-bold'>Layout</h1>
                                                 <p className='text-gray-500'>Choose your preferred layout</p>
                                             </div>
-                                            <div className='border rounded border-gray-200 flex items-center'>
-
+                                            <div className='border rounded border-bbg flex items-center'>
                                             </div>
                                         </div>
                                     </div>
@@ -276,7 +275,7 @@ function Setting() {
                                     initial={{ opacity: 0, y: '100%' }}
                                     animate={{ opacity: 100, y: '0%' }}
                                     exit={{ opacity: 0, y: '100%' }}
-                                    className={`${shake ? 'animate-shake' : ''} absolute bottom-0 z-50 p-2 mx-auto space-x-4 bg-white text-xs flex justify-between items-center rounded-t-md border border-b-0`}>
+                                    className={`${shake ? 'animate-shake' : ''} absolute bottom-0 z-50 p-2 mx-auto space-x-4 bg-bg text-xs flex justify-between items-center rounded-t-md border border-b-0 border-bbg`}>
                                     <div>Unsaved changes</div>
                                     <div className='flex space-x-2 '>
                                         <button onClick={handleDiscardChanges} className='border rounded border-bbg py-1 px-2'>Discard</button>

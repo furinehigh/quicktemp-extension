@@ -48,7 +48,7 @@ function HistoryModal({ isOpen, onClose, usingEmail }) {
                   usingEmail(h)
                 }}
                 type="button"
-                className="border border-bbg px-1 py-0.5 hover:bg-gray-200"
+                className="border border-bbg px-1 py-0.5 hover:bg-bbg"
               >
                 Use
               </button>

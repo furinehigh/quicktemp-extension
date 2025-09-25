@@ -61,7 +61,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center text-xs justify-center z-50">
-        <div className="bg-bg p-4 rounded shadow-md w-72">
+        <div className="bg-bg p-4 rounded border border-bbg w-72">
           <p>Are you sure you want to delete this email?</p>
           <div className="flex justify-end space-x-2 mt-4">
             <button
@@ -156,14 +156,14 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
         </div>
         <div className="flex justify-end items-center space-x-1 w-full">
           <button
-            className="p-1 rounded-full border hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="p-1 rounded-full border hover:bg-bbg disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
           >
             <ChevronLeft size={16} />
           </button>
           <button
-            className="p-1 rounded-full border hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="p-1 rounded-full border hover:bg-bbg disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
           >
@@ -191,7 +191,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
-              className="group email-item border rounded-lg p-3 shadow-sm cursor-pointer hover:bg-gray-50 overflow-hidden relative"
+              className="group email-item border border-bbg rounded-lg p-3 shadow-sm cursor-pointer hover:bg-bbg overflow-hidden relative"
               onClick={() => {
                 if (!email.folder.includes('Read')) handleFolderChange(mailbox, email.id, 'Read')
                 onSelectEmail(email)
@@ -199,8 +199,8 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
             >
               <div className="flex justify-between">
                 <div className="min-w-0">
-                  <p className="font-semibold text-gray-800 text-sm">{email.from || "Unknown"}</p>
-                  <p className="text-gray-600 truncate text-xs">
+                  <p className="font-semibold text-fg text-sm">{email.from || "Unknown"}</p>
+                  <p className="text-gray-500 truncate text-xs">
                     {email.subject || "(No Subject)"}
                   </p>
                 </div>
