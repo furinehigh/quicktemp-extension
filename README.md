@@ -3,11 +3,13 @@
 # QuickTemp
 Temporary email extension for your browser with crazy features that you might have not seen before (i'm just assuming lol)
 
+# Get the Extension
+- **Firefox ADD-ONS:** https://addons.mozilla.org/en-US/firefox/addon/quicktemp-best-temp-mail-ui/
+
 ## Video Demo
 
 
 https://github.com/user-attachments/assets/b4cac976-7f8f-44ae-9640-1ec14658b477
-
 
 
 
