@@ -52,17 +52,19 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 });
 
                 const reqData = data.data.filter((m) => (m?.folder || []).includes(message.folder))
-                if (data.data.length){
+                if (data.data.length) {
                     console.log('updating email counts from fetch mailbox listener')
                     let emailCounts = await browser.storage.local.get('emailCounts')
                     emailCounts = emailCounts.emailCounts || {}
                     let emailCountsP = emailCounts[message.address]
                     emailCountsP.Inbox = data.data.length
                     emailCountsP.Unread = data.data.length
-                    await browser.storage.local.set({ emailCounts: {
-                        ...emailCounts,
-                        [message.address]: emailCountsP
-                    } })
+                    await browser.storage.local.set({
+                        emailCounts: {
+                            ...emailCounts,
+                            [message.address]: emailCountsP
+                        }
+                    })
                 }
 
                 sendResponse({ success: true, data: reqData });
@@ -314,11 +316,11 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const inSoT = inSpam || inTrash;
 
                 const incCounts = (f) => {
-                     emailCountsP[f] = ( emailCountsP[f] || 0) + 1
+                    emailCountsP[f] = (emailCountsP[f] || 0) + 1
                 }
 
                 const decCounts = (f) => {
-                     emailCountsP[f] = ( emailCountsP[f] || 0) - 1
+                    emailCountsP[f] = (emailCountsP[f] || 0) - 1
                 }
 
                 if (inInbox && toSoT) {
@@ -358,10 +360,12 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     }
                 }
                 await browser.storage.local.set({ savedMessages: updatedMessages })
-                await browser.storage.local.set({ emailCounts: {
-                    ...emailCounts,
-                    [message.address]: emailCountsP
-                } })
+                await browser.storage.local.set({
+                    emailCounts: {
+                        ...emailCounts,
+                        [message.address]: emailCountsP
+                    }
+                })
                 sendResponse({ success: true })
             } catch (err) {
                 console.error("FOLDER_CHANGE error: ", err)
@@ -418,10 +422,12 @@ async function initWebSocket() {
         } else {
             countsP.Inbox = (countsP.Inbox || 0) + 1;
         }
-        await browser.storage.local.set({ emailCounts: {
-            ...counts,
-            [data.mailbox]: countsP
-        } })
+        await browser.storage.local.set({
+            emailCounts: {
+                ...counts,
+                [data.mailbox]: countsP
+            }
+        })
         data = { ...data, folder: isSpam ? ['Spam', 'Unread'] : ['Inbox', 'Unread'] }
 
         if (data.mailbox && savedMessages[data.mailbox]?.data) {
@@ -487,13 +493,15 @@ async function initExtension() {
     let res = await browser.storage.local.get('emailCounts')
     const resE = await browser.storage.local.get("tempEmail");
     const email = resE.tempEmail;
-    let result = res?.emailCounts || {[email]: undefined}
+    let result = res?.emailCounts || { [email]: undefined }
     result = result[email] || undefined
     if (result === undefined || Object.keys(result).length == 0) {
-        await browser.storage.local.set({ emailCounts: {
-            ...res?.emailCounts || {},
-            [email]: counts
-        } })
+        await browser.storage.local.set({
+            emailCounts: {
+                ...res?.emailCounts || {},
+                [email]: counts
+            }
+        })
     }
 
     let s = {
@@ -502,23 +510,24 @@ async function initExtension() {
                 light: {
                     bg: '#ffffff',
                     fg: '#000000',
-                    btnBg: '',
+                    btnBg: '#3b82f6',
                     bbg: '#d1d5db'
                 },
                 dark: {
                     bg: '#000000',
                     fg: '#ffffff',
-                    btnBg: '',
+                    btnBg: '#3b82f6',
                     bbg: '#374151'
                 },
                 active: 'light'
             },
             customTheme: [
                 {
-                    name: 'Custom 1',
-                    color: {
-                        bgColor: '#234232',
-                        borderColor: '#b1b1b1'
+                    0: {
+                        bg: '#000000',
+                        fg: '#ffffff',
+                        btnBg: '',
+                        bbg: '#374151'
                     }
                 }
             ]

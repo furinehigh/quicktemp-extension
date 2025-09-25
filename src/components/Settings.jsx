@@ -5,6 +5,7 @@ import { getSettings, saveSettings } from '../utils/api'
 import { useToast } from '../contexts/ToastContext'
 import isEqual from "lodash/isEqual";
 import { capitalizeFirst } from '../utils/utils'
+import AddTheme from './settings/AddTheme'
 /* global browser */
 if (typeof browser === "undefined") {
     /* global chrome */
@@ -18,6 +19,7 @@ function Setting() {
     const [saved, setSaved] = useState(true)
     const [shake, setShake] = useState(false)
     const [error, setError] = useState('')
+    const [openThemeAdd, setOpenThemeAdd] = useState(false)
     const { addToast } = useToast()
 
     useEffect(() => {
@@ -112,6 +114,26 @@ function Setting() {
         }
         setCurrChanges(settingChanges)
         setSaved(false)
+    }
+
+    const handleAddTheme = async (data) => {
+        const Layout = {
+            theme: settings[selectedNav].theme,
+            customTheme: [
+            ...settings[selectedNav].customTheme,
+            {
+                [settings[selectedNav].customTheme.length]: data
+            }
+        ]}
+        const res = await saveSettings(selectedNav, Layout)
+        setSettings({
+            ...settings,
+            [selectedNav]: Layout
+        })
+
+        if (res.success){
+            addToast('Custom theme added', 'success')
+        }
     }
 
     const handleChangesSaved = async () => {
@@ -245,13 +267,13 @@ function Setting() {
                                                     <button style={{ backgroundColor: t.color.bgColor, borderColor: t.borderColor }} className={`rounded-full border w-4 h-4 `}>
                                                     </button>
                                                 ))}
-                                                <button className={`rounded-full border border-bbg bg-bg p-1`}>
+                                                <button onClick={() => setOpenThemeAdd(true)} className={`rounded-full border border-bbg bg-bg p-1`}>
                                                     <Plus size={10} />
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className='border rounded border-bbg p-2'>
+                                    {/* <div className='border rounded border-bbg p-2'>
                                         <div className='flex justify-between items-center'>
                                             <div className=''>
                                                 <h1 className='text-sm font-bold'>Layout</h1>
@@ -260,12 +282,14 @@ function Setting() {
                                             <div className='border rounded border-bbg flex items-center'>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> */}
                                 </div>
-                            ) : (
+                            ) : selectedNav == 'Blacklist' ? (
                                 <div>
 
                                 </div>
+                            ) : (
+                                <div></div>
                             )}
                         </div>
                         {error && <p className='text-red-400'>{error}</p>}
@@ -287,6 +311,7 @@ function Setting() {
                     </div>
                 </motion.div>
             )}
+            <AddTheme isOpen={openThemeAdd} onClose={() => setOpenThemeAdd(false)} onSubmit={handleAddTheme} />
         </div>
     )
 }

@@ -78,7 +78,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
             >
               Delete
             </button>
-            <button className="px-4 py-2 bg-gray-200 rounded" onClick={onClose}>
+            <button className="px-4 py-2 bg-bbg rounded" onClick={onClose}>
               Cancel
             </button>
           </div>

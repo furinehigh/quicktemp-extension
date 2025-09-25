@@ -12,6 +12,7 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
+    "react-colorful": "^5.6.1",
     "react-dom": "^19.1.1",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
