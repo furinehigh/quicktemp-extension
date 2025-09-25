@@ -502,12 +502,14 @@ async function initExtension() {
                 light: {
                     bg: '#ffffff',
                     fg: '#000000',
-                    btnBg: ''
+                    btnBg: '',
+                    bbg: '#d1d5db'
                 },
                 dark: {
                     bg: '#000000',
                     fg: '#ffffff',
-                    btnBg: ''
+                    btnBg: '',
+                    bbg: '#374151'
                 },
                 active: 'light'
             },

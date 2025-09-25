@@ -26,7 +26,7 @@ function HistoryModal({ isOpen, onClose, usingEmail }) {
   if (!isOpen) return null;
 
   return (
-    <div className="absolute right-8 top-40 text-xs bg-bg text-fg border border-gray-300 rounded shadow-md p-4 w-64 z-50">
+    <div className="absolute right-8 top-40 text-xs bg-bg text-fg border border-bbg rounded shadow-md p-4 w-64 z-50">
       <div className="flex justify-between w-full items-center mb-2">
         <h2 className="text-sm font-bold">Email History</h2>
         <button onClick={onClose} className="text-sm text-gray-600">
@@ -39,7 +39,7 @@ function HistoryModal({ isOpen, onClose, usingEmail }) {
           emailHistory.map((h, i) => (
             <div
               key={i}
-              className="rounded border border-gray-300 p-1 flex justify-between items-center"
+              className="rounded border border-bbg p-1 flex justify-between items-center"
             >
               <p>{h}</p>
               <button
@@ -48,7 +48,7 @@ function HistoryModal({ isOpen, onClose, usingEmail }) {
                   usingEmail(h)
                 }}
                 type="button"
-                className="border border-gray-300 px-1 py-0.5 hover:bg-gray-200"
+                className="border border-bbg px-1 py-0.5 hover:bg-gray-200"
               >
                 Use
               </button>

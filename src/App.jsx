@@ -79,7 +79,7 @@ function App() {
                 browser.storage.local.set({ tempEmail: newEmail });
                 initWebSocket(newEmail);
               }}
-              className="p-1.5 w-full border border-gray-300 rounded-tl-md rounded-bl-md bg-bg text-fg"
+              className="p-1.5 w-full border border-bbg rounded-tl-md rounded-bl-md bg-bg text-fg"
             />
             <select
               value={selectedDomain}
@@ -90,7 +90,7 @@ function App() {
                 browser.storage.local.set({ tempEmail: newEmail });
                 initWebSocket(newEmail);
               }}
-              className="border py-1.5 w-full border-gray-300 rounded-tr-md rounded-br-md border-l-0 bg-bg text-fg"
+              className="border py-1.5 w-full border-bbg rounded-tr-md rounded-br-md border-l-0 bg-bg text-fg"
             >
               {domains.map((domain) => (
                 <option key={domain} value={domain}>
@@ -110,7 +110,7 @@ function App() {
                 console.error("Failed to copy: ", err);
               }
             }}
-            className="text-sm py-2 px-2 rounded-md border border-gray-300"
+            className="text-sm py-2 px-2 rounded-md border border-bbg"
           >
             {copied ? <Check size={16} /> : <Copy size={16} />}
           </button>
@@ -120,21 +120,21 @@ function App() {
           <button
             onClick={handleRefresh}
             disabled={loading}
-            className="text-sm py-0.5 px-1.5 rounded-md border border-gray-300 flex flex-row items-center"
+            className="text-sm py-0.5 px-1.5 rounded-md border border-bbg flex flex-row items-center"
           >
             <RefreshCcw className={`${loading ? "animate-spin" : ""} mr-1 inline`} size={16} /> Refresh
           </button>
           <button
             onClick={handleRandomEmail}
             disabled={loading}
-            className="text-sm py-0.5 px-1.5 rounded-md border border-gray-300 flex flex-row items-center"
+            className="text-sm py-0.5 px-1.5 rounded-md border border-bbg flex flex-row items-center"
           >
             <Shuffle className="mr-1 inline" size={16} /> Random
           </button>
           <button
             onClick={handleOpenHistory}
             disabled={loading}
-            className="text-sm py-0.5 px-1.5 rounded-md border border-gray-300 flex flex-row items-center"
+            className="text-sm py-0.5 px-1.5 rounded-md border border-bbg flex flex-row items-center"
           >
             <History className="mr-1 inline" size={16} /> History
           </button>

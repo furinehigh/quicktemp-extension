@@ -106,11 +106,11 @@ export default function EmailView({ email, onClose }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="fixed inset-0 bg-black/40 flex justify-center items-center z-50"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50"
         >
-            <div className="bg-white rounded shadow-md p-3 w-full h-[400px] flex flex-col">
+            <div className="bg-bg rounded shadow-md p-3 w-full h-[400px] flex flex-col">
                 {/* Header */}
-                {email.folder.includes('Spam') && <div className="flex items-center space-x-2 p-2 bg-gray-400 text-white text-xs">
+                {email.folder.includes('Spam') && <div className="flex items-center space-x-2 p-2 mb-1 bg-gray-400 text-white text-xs">
                     <OctagonAlert size={16} className="inline text-red-500" />
                     <p>This message was marked as Spam by the spam filtering script</p>
                 </div>}

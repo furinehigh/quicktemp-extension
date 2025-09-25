@@ -60,7 +60,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-fg bg-opacity-50 flex items-center text-xs justify-center z-50">
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center text-xs justify-center z-50">
         <div className="bg-bg p-4 rounded shadow-md w-72">
           <p>Are you sure you want to delete this email?</p>
           <div className="flex justify-end space-x-2 mt-4">

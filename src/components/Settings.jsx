@@ -160,9 +160,9 @@ function Setting() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="fixed inset-0 bg-fg opacity-40 flex justify-center items-center z-50"
+                    className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50"
                 >
-                    <div className="bg-bg rounded shadow-md p-3 w-full h-[400px] flex flex-col overflow-hidden relative">
+                    <div className="bg-bg rounded p-3 w-full h-[400px] flex flex-col overflow-hidden relative">
 
                         <div className='flex  justify-between items-center'>
                             <h3 className="text-lg font-semibold mb-2">Settings</h3>
@@ -175,7 +175,7 @@ function Setting() {
                             {navTabs.map((nav) => (
                                 <button
                                     key={nav}
-                                    className={`px-2 py-1 rounded text-xs border-1 border-gray-300 ${nav === selectedNav ? "bg-blue-500 text-white" : "text-gray-700"
+                                    className={`px-2 py-1 rounded text-xs border-1 border-bbg ${nav === selectedNav ? "bg-blue-500 text-white" : "text-gray-700"
                                         }`}
                                     onClick={() => handleNavChange(nav)}
                                 >
@@ -186,7 +186,7 @@ function Setting() {
                         <div className=' p-2 h-full text-xs overflow-y-auto'>
                             {selectedNav == 'Spam' ? (
                                 <div className='flex flex-col space-y-2'>
-                                    <div className='border border-gray-300 space-y-2 p-2'>
+                                    <div className='border border-bbg space-y-2 p-2'>
                                         <div>
                                             <h1 className='text-sm font-bold'>
                                                 Spam Filter
@@ -203,7 +203,7 @@ function Setting() {
                                                     setError(v)
                                                 }
 
-                                            }} className='w-full max-h-[180px] border border-gray-300 rounded bg-bg text-fg bg-opacity-70'></textarea>
+                                            }} className='w-full max-h-[180px] border border-bbg rounded bg-bg text-fg bg-opacity-70'></textarea>
                                             <p className='text-gray-500 text-[10px]'>
                                                 <strong>from</strong> : Email from, {' '}
                                                 <strong>subject</strong> : Email subject, {' '}
@@ -215,7 +215,7 @@ function Setting() {
                                 </div>
                             ) : selectedNav == 'Layout' ? (
                                 <div className='flex flex-col space-y-2'>
-                                    <div className='border rounded border-gray-300 p-2'>
+                                    <div className='border rounded border-bbg p-2'>
                                         <div className='flex justify-between items-center'>
                                             <div className=''>
                                                 <h1 className='text-sm font-bold'>Theme</h1>
@@ -234,7 +234,7 @@ function Setting() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className='border rounded border-gray-300 p-2'>
+                                    <div className='border rounded border-bbg p-2'>
                                         <div className='flex justify-between items-center'>
                                             <div className=''>
                                                 <h1 className='text-sm font-bold'>Custom Theme</h1>
@@ -245,13 +245,13 @@ function Setting() {
                                                     <button style={{ backgroundColor: t.color.bgColor, borderColor: t.borderColor }} className={`rounded-full border w-4 h-4 `}>
                                                     </button>
                                                 ))}
-                                                <button className={`rounded-full border border-gray-300 bg-white p-1`}>
+                                                <button className={`rounded-full border border-bbg bg-white p-1`}>
                                                     <Plus size={10} />
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className='border rounded border-gray-300 p-2'>
+                                    <div className='border rounded border-bbg p-2'>
                                         <div className='flex justify-between items-center'>
                                             <div className=''>
                                                 <h1 className='text-sm font-bold'>Layout</h1>
@@ -279,7 +279,7 @@ function Setting() {
                                     className={`${shake ? 'animate-shake' : ''} absolute bottom-0 z-50 p-2 mx-auto space-x-4 bg-white text-xs flex justify-between items-center rounded-t-md border border-b-0`}>
                                     <div>Unsaved changes</div>
                                     <div className='flex space-x-2 '>
-                                        <button onClick={handleDiscardChanges} className='border rounded border-gray-300 py-1 px-2'>Discard</button>
+                                        <button onClick={handleDiscardChanges} className='border rounded border-bbg py-1 px-2'>Discard</button>
                                         <button onClick={handleChangesSaved} className='border rounded bg-blue-500 text-white py-1 px-2'>Save</button>
                                     </div>
                                 </motion.div>
