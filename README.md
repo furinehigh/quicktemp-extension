@@ -1,3 +1,5 @@
+<img width="1536" height="1024" alt="20250920_2003_QuickTemp Email Extension_remix_01k5krhx9cfjtrjqz3kaf1dtea" src="https://github.com/user-attachments/assets/4ddc714a-1ae2-41ec-b89d-29e9a8d8a8bf" />
+
 # QuickTemp
 Temporary email extension for your browser with crazy features that you might have not seen before (i'm just assuming lol)
 
