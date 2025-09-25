@@ -8,7 +8,10 @@ function useTheme() {
     useEffect(() => {
         const prefersDark = window.matchMedia("(prefers-color-scheme: dark)")
 
-        const applyTheme = async (theme) => {
+        const applyTheme = async (layout) => {
+            let customTheme = layout?.customTheme
+            let theme = layout?.theme
+
             if (!theme) return;
 
             console.log('active theme', theme?.active)
@@ -23,18 +26,30 @@ function useTheme() {
                 }
                 return;
             }
+            
+            if (customTheme[Number(theme?.active)][theme?.active]) {
+                Object.entries(customTheme[Number(theme?.active)][theme.active]).forEach(([key, value]) => {
+                    document.documentElement.style.setProperty(`--${key}`, value)
+                })
 
-            if (theme[theme?.active]) {
+                return;
+            }
+
+            if (theme?.active.length > 2 && theme[theme?.active]) {
                 console.log('applying this theme', theme[theme.active])
                 Object.entries(theme[theme.active]).forEach(([key, value]) => {
                     document.documentElement.style.setProperty(`--${key}`, value)
                 })
+
+                return;
             }
+
+            
         }
 
         const loadTheme = async () => {
             await browser?.storage?.local?.get("settings", (res) => {
-                applyTheme(res?.settings?.Layout?.theme);
+                applyTheme(res?.settings?.Layout);
             });
         };
 

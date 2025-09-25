@@ -120,20 +120,37 @@ function Setting() {
         const Layout = {
             theme: settings[selectedNav].theme,
             customTheme: [
-            ...settings[selectedNav].customTheme,
-            {
-                [settings[selectedNav].customTheme.length]: data
-            }
-        ]}
+                ...settings[selectedNav].customTheme,
+                {
+                    [settings[selectedNav].customTheme.length]: data
+                }
+            ]
+        }
         const res = await saveSettings(selectedNav, Layout)
         setSettings({
             ...settings,
             [selectedNav]: Layout
         })
 
-        if (res.success){
+        if (res.success) {
             addToast('Custom theme added', 'success')
+            setOpenThemeAdd(false)
         }
+    }
+
+    const handleSelectTheme = async (name) => {
+        let Layout = {
+            ...settings.Layout,
+            theme: {
+                ...settings.Layout.theme,
+                active: name
+            }
+        }
+        setCurrChanges((prev) => ({
+            ...prev,
+            Layout
+        }))
+        setSaved(false)
     }
 
     const handleChangesSaved = async () => {
@@ -262,12 +279,16 @@ function Setting() {
                                                 <h1 className='text-sm font-bold'>Custom Theme</h1>
                                                 <p className='text-gray-500'>Create your custom theme</p>
                                             </div>
-                                            <div className='border rounded border-bbg flex items-center'>
-                                                {(currChanges?.Layout?.customTheme || settings?.Layout?.customTheme || []).map((t) => (
-                                                    <button style={{ backgroundColor: t.color.bgColor, borderColor: t.borderColor }} className={`rounded-full border w-4 h-4 `}>
-                                                    </button>
+                                            <div className='border rounded border-bbg flex items-center space-x-1 p-1'>
+                                                {(settings?.Layout?.customTheme || []).map((t, i) => (
+                                                    <div onClick={() => handleSelectTheme(i)} style={{ borderColor: t[i].bbg }} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == i : settings?.Layout?.theme?.active == i) ? 'border-2' : ''} grid grid-cols-2 gap-0 border cursor-pointer`}>
+                                                        <div style={{ backgroundColor: t[i].bg }} className='w-1.5 h-1.5'></div>
+                                                        <div style={{ backgroundColor: t[i].fg }} className='w-1.5 h-1.5'></div>
+                                                        <div style={{ backgroundColor: t[i].btnbg }} className='w-1.5 h-1.5'></div>
+                                                        <div style={{ backgroundColor: t[i].bbg }} className='w-1.5 h-1.5'></div>
+                                                    </div>
                                                 ))}
-                                                <button onClick={() => setOpenThemeAdd(true)} className={`rounded-full border border-bbg bg-bg p-1`}>
+                                                <button onClick={() => setOpenThemeAdd(true)} className={`border border-bbg bg-bg p-1`}>
                                                     <Plus size={10} />
                                                 </button>
                                             </div>
