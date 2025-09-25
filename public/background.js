@@ -499,12 +499,17 @@ async function initExtension() {
     let s = {
         Layout: {
             theme: {
-                name: 'light',
-                color: {
-                    bgColor: '#000000',
-                    color: '#ffffff',
+                light: {
+                    bg: '#ffffff',
+                    fg: '#000000',
                     btnBg: ''
-                }
+                },
+                dark: {
+                    bg: '#000000',
+                    fg: '#ffffff',
+                    btnBg: ''
+                },
+                active: 'light'
             },
             customTheme: [
                 {

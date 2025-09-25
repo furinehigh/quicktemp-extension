@@ -23,7 +23,11 @@ module.exports = {
             transform: 'translate3d(4px, 0, 0)'
           }
         }
-      }
+      },
+      colors: {
+        bg: "var(--bg)",
+        fg: "var(--fg)",
+      },
     },
   },
   plugins: [],

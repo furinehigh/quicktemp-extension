@@ -101,27 +101,11 @@ function Setting() {
     }
 
     const handleThemeChange = (name, custom = undefined) => {
-        let colors;
-        if (name == 'dark') {
-            colors = {
-                bg: '#000000',
-                text: '#ffffff',
-                btnBg: '#'
-            }
-        } else if (name == 'light') {
-            colors = {
-                bg: '#ffffff',
-                text: '#000000',
-                btnBg: ''
-            }
-        } else {
-            colors = custom
-        }
         let settingChanges = {
             Layout: {
                 theme: {
-                    name,
-                    colors
+                    ...settings.Layout.theme,
+                    active: name
                 },
                 customTheme: settings.Layout.customTheme
             }
@@ -170,19 +154,19 @@ function Setting() {
 
     return (
         <div>
-            <Settings size={20} onClick={() => setOpen(true)} className="inline mr-2 text-gray-600 hover:rotate-45 transition-transform duration-200 cursor-pointer" />
+            <Settings size={20} onClick={() => setOpen(true)} className="inline mr-2 text-fg hover:rotate-45 transition-transform duration-200 cursor-pointer" />
             {open && (
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="fixed inset-0 bg-black/40 flex justify-center items-center z-50"
+                    className="fixed inset-0 bg-fg opacity-40 flex justify-center items-center z-50"
                 >
-                    <div className="bg-white rounded shadow-md p-3 w-full h-[400px] flex flex-col overflow-hidden relative">
+                    <div className="bg-bg rounded shadow-md p-3 w-full h-[400px] flex flex-col overflow-hidden relative">
 
                         <div className='flex  justify-between items-center'>
                             <h3 className="text-lg font-semibold mb-2">Settings</h3>
-                            <X className='inline' onClick={() => {
+                            <X className='inline text-fg' onClick={() => {
                                 if (saved) setOpen(false)
                                 else handleShake()
                             }} size={16} />
@@ -219,7 +203,7 @@ function Setting() {
                                                     setError(v)
                                                 }
 
-                                            }} className='w-full max-h-[180px] border border-gray-300 rounded'></textarea>
+                                            }} className='w-full max-h-[180px] border border-gray-300 rounded bg-bg text-fg bg-opacity-70'></textarea>
                                             <p className='text-gray-500 text-[10px]'>
                                                 <strong>from</strong> : Email from, {' '}
                                                 <strong>subject</strong> : Email subject, {' '}
@@ -238,13 +222,13 @@ function Setting() {
                                                 <p className='text-gray-500'>Choose your preferred theme</p>
                                             </div>
                                             <div className='border rounded border-gray-200 flex items-center'>
-                                                <button onClick={() => handleThemeChange('dark')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.name == 'dark' : settings?.Layout?.theme?.name == 'dark' ) ? 'bg-gray-200' : ''} border-r border-r-gray-100 p-1`}>
+                                                <button onClick={() => handleThemeChange('dark')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == 'dark' : settings?.Layout?.theme?.active == 'dark') ? 'bg-gray-200' : ''} border-r border-r-gray-100 p-1`}>
                                                     <Moon size={14} />
                                                 </button>
-                                                <button onClick={() => handleThemeChange('light')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.name == 'light' : settings?.Layout?.theme?.name == 'light') ? 'bg-gray-200' : ''} border-r border-r-gray-100 p-1`}>
+                                                <button onClick={() => handleThemeChange('light')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == 'light' : settings?.Layout?.theme?.active == 'light') ? 'bg-gray-200' : ''} border-r border-r-gray-100 p-1`}>
                                                     <Sun size={14} />
                                                 </button>
-                                                <button onClick={() => handleThemeChange('system')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ?currChanges?.Layout?.theme?.name == 'system' : settings?.Layout?.theme?.name == 'system') ? 'bg-gray-200' : ''} p-1 `}>
+                                                <button onClick={() => handleThemeChange('system')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == 'system' : settings?.Layout?.theme?.active == 'system') ? 'bg-gray-200' : ''} p-1 `}>
                                                     <SunMoon size={14} />
                                                 </button>
                                             </div>
@@ -274,7 +258,7 @@ function Setting() {
                                                 <p className='text-gray-500'>Choose your preferred layout</p>
                                             </div>
                                             <div className='border rounded border-gray-200 flex items-center'>
-                                                
+
                                             </div>
                                         </div>
                                     </div>

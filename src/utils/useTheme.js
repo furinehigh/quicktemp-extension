@@ -1,0 +1,57 @@
+import React, { useEffect } from 'react'
+/* global browser */
+if (typeof browser === "undefined") {
+    /* global chrome */
+    var browser = chrome;
+}
+function useTheme() {
+    useEffect(() => {
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)")
+
+        const applyTheme = async (theme) => {
+            if (!theme) return;
+
+            console.log('active theme', theme?.active)
+            if (theme?.active === 'system') {
+                const mode = prefersDark ? 'dark' : 'light'
+                document.documentElement.setAttribute('data-theme', mode)
+
+                if (theme[mode]) {
+                    Object.entries(theme[mode]).forEach(([key, value]) => {
+                        document.documentElement.style.setProperty(`--${key}`, value)
+                    })
+                }
+                return;
+            }
+
+            if (theme[theme?.active]) {
+                console.log('applying this theme', theme[theme.active])
+                Object.entries(theme[theme.active]).forEach(([key, value]) => {
+                    document.documentElement.style.setProperty(`--${key}`, value)
+                })
+            }
+        }
+
+        const loadTheme = async () => {
+            await browser?.storage?.local?.get("settings", (res) => {
+                applyTheme(res?.settings?.Layout?.theme);
+            });
+        };
+
+        loadTheme();
+
+        browser.storage.onChanged.addListener((changes, area) => {
+            console.log('from onChanged listener')
+            if (area == 'local' && changes.settings) {
+                const theme = changes.settings.newValue.Layout.theme;
+                applyTheme(theme);
+            }
+        })
+
+        prefersDark.addEventListener("change", () => {
+            loadTheme(); // reloads for u
+        });
+    }, [])
+}
+
+export default useTheme

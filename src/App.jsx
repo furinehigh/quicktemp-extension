@@ -6,6 +6,7 @@ import { randomDomain, randomString, domains, initWebSocket } from "./utils/api"
 import { Check, Copy, History, RefreshCcw, Shuffle } from "lucide-react";
 import HistoryModal from "./components/History";
 import { ToastProvider } from "./contexts/ToastContext";
+import useTheme from "./utils/useTheme";
 /* global browser */
 if (typeof browser === "undefined") {
   /* global chrome */
@@ -19,6 +20,7 @@ function App() {
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
   const eListRef = useRef(null);
+  useTheme()
 
   const handleOpenHistory = () => {
     setShowHistory(true);
@@ -61,7 +63,7 @@ function App() {
   };
 
   return (
-    <div className="p-4 font-sans w-[400px] h-[550px]">
+    <div className="p-4 font-sans w-[400px] h-[550px] bg-bg text-fg">
       <ToastProvider>
         <Header />
         <div className="flex flex-row justify-between space-x-1 items-center">
@@ -77,7 +79,7 @@ function App() {
                 browser.storage.local.set({ tempEmail: newEmail });
                 initWebSocket(newEmail);
               }}
-              className="p-1.5 w-full border border-gray-300 rounded-tl-md rounded-bl-md bg-white text-gray-800"
+              className="p-1.5 w-full border border-gray-300 rounded-tl-md rounded-bl-md bg-bg text-fg"
             />
             <select
               value={selectedDomain}
@@ -88,7 +90,7 @@ function App() {
                 browser.storage.local.set({ tempEmail: newEmail });
                 initWebSocket(newEmail);
               }}
-              className="border py-1.5 w-full border-gray-300 rounded-tr-md rounded-br-md border-l-0 bg-white"
+              className="border py-1.5 w-full border-gray-300 rounded-tr-md rounded-br-md border-l-0 bg-bg text-fg"
             >
               {domains.map((domain) => (
                 <option key={domain} value={domain}>
