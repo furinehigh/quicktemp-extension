@@ -145,6 +145,9 @@ function App() {
         {showHistory && <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} usingEmail={(e) => {
           setEmail(e)
           setSelectedDomain(e.split('@')[1])
+          if (eListRef.current) {
+            eListRef.current.clientRefresh(email)
+          }
         }} />}
       </ToastProvider>
     </div>

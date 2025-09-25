@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Moon, Settings, Sun, SunMoon, X } from 'lucide-react'
+import { Moon, Plus, Settings, Sun, SunMoon, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { getSettings, saveSettings } from '../utils/api'
 import { useToast } from '../contexts/ToastContext'
@@ -91,7 +91,7 @@ function Setting() {
                 [field]: e.target.value
             }
         }
-        if (isEqual(settingChanges, {[selectedNav]: { ...settings[selectedNav] }})) {
+        if (isEqual(settingChanges, { [selectedNav]: { ...settings[selectedNav] } })) {
             setSaved(true)
             setCurrChanges({})
         } else {
@@ -108,7 +108,7 @@ function Setting() {
                 text: '#ffffff',
                 btnBg: '#'
             }
-        } else if (name == 'light'){
+        } else if (name == 'light') {
             colors = {
                 bg: '#ffffff',
                 text: '#000000',
@@ -122,10 +122,12 @@ function Setting() {
                 theme: {
                     name,
                     colors
-                }
+                },
+                customTheme: settings.Layout.customTheme
             }
         }
         setCurrChanges(settingChanges)
+        setSaved(false)
     }
 
     const handleChangesSaved = async () => {
@@ -236,13 +238,13 @@ function Setting() {
                                                 <p className='text-gray-500'>Choose your preferred theme</p>
                                             </div>
                                             <div className='border rounded border-gray-200 flex items-center'>
-                                                <button onClick={() => handleThemeChange('dark')} className={`${settings.Layout.theme.name == 'dark' ? 'bg-gray-200' : ''} border-r border-r-gray-100 p-1`}>
+                                                <button onClick={() => handleThemeChange('dark')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.name == 'dark' : settings?.Layout?.theme?.name == 'dark' ) ? 'bg-gray-200' : ''} border-r border-r-gray-100 p-1`}>
                                                     <Moon size={14} />
                                                 </button>
-                                                <button onClick={() => handleThemeChange('light')} className={`${settings.Layout.theme.name == 'light' ? 'bg-gray-200' : ''} border-r border-r-gray-100 p-1`}>
+                                                <button onClick={() => handleThemeChange('light')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.name == 'light' : settings?.Layout?.theme?.name == 'light') ? 'bg-gray-200' : ''} border-r border-r-gray-100 p-1`}>
                                                     <Sun size={14} />
                                                 </button>
-                                                <button onClick={() => handleThemeChange('system')} className={`${settings.Layout.theme.name == 'system' ? 'bg-gray-200' : ''} p-1 `}>
+                                                <button onClick={() => handleThemeChange('system')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ?currChanges?.Layout?.theme?.name == 'system' : settings?.Layout?.theme?.name == 'system') ? 'bg-gray-200' : ''} p-1 `}>
                                                     <SunMoon size={14} />
                                                 </button>
                                             </div>
@@ -255,11 +257,13 @@ function Setting() {
                                                 <p className='text-gray-500'>Create your custom theme</p>
                                             </div>
                                             <div className='border rounded border-gray-200 flex items-center'>
-                                                {(settings.Layout.customTheme || []).map((t) => (
-                                                    <button style={} className={`rounded-full border w-4 h-4 `}>
-
+                                                {(currChanges?.Layout?.customTheme || settings?.Layout?.customTheme || []).map((t) => (
+                                                    <button style={{ backgroundColor: t.color.bgColor, borderColor: t.borderColor }} className={`rounded-full border w-4 h-4 `}>
                                                     </button>
                                                 ))}
+                                                <button className={`rounded-full border border-gray-300 bg-white p-1`}>
+                                                    <Plus size={10} />
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -270,15 +274,7 @@ function Setting() {
                                                 <p className='text-gray-500'>Choose your preferred layout</p>
                                             </div>
                                             <div className='border rounded border-gray-200 flex items-center'>
-                                                <button className={`border-r border-r-gray-100 p-1`}>
-                                                    <Moon size={14} />
-                                                </button>
-                                                <button className={`border-r border-r-gray-100 p-1`}>
-                                                    <Sun size={14} />
-                                                </button>
-                                                <button className={`p-1 `}>
-                                                    <SunMoon size={14} />
-                                                </button>
+                                                
                                             </div>
                                         </div>
                                     </div>

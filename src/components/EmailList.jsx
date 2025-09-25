@@ -19,15 +19,21 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   const perPage = 5;
 
   useImperativeHandle(ref, () => ({
-    refresh: () => fetchMessages(),
-    clientRefresh: (mailbox) => loadEmailsForMailbox(mailbox)
+    refresh: () => {
+      refreshCounts()
+      fetchMessages()
+    },
+    clientRefresh: (mailbox) => {
+      refreshCounts()
+      loadEmailsForMailbox(mailbox)
+    }
   }));
 
   const fetchMessages = async () => {
     setLoading(true);
     try {
       const res = await fetchMailbox(mailbox, selectedFolder);
-      if (res.data){
+      if (res.data) {
         loadEmailsForMailbox(mailbox)
       }
     } catch (err) {
@@ -37,12 +43,15 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   };
 
   const refreshCounts = async () => {
-    const counts = await getEmailCounts();
+    const counts = await getEmailCounts(mailbox);
+    console.log('for debugging from refreshCount', counts)
     setEmailCounts(counts)
   };
 
   useEffect(() => {
-    refreshCounts()
+    (async () => {
+      await refreshCounts()
+    })();
   }, [])
 
   const DeleteDialog = ({ emailId, onClose }) => {
@@ -131,7 +140,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
           {Folders.map((Folder) => (
             <button
               key={Folder}
-              className={`px-1 py-0.5 rounded text-xs border border-gray-300 ${Folder === selectedFolder ? "bg-blue-500 text-white" : "text-gray-700"
+              className={`px-1 py-0.5 rounded text-xs  ${Folder === selectedFolder ? "bg-blue-500 text-white" : "text-gray-700"
                 }`}
               onClick={() => {
                 setSelectedFolder(Folder);

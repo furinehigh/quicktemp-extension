@@ -92,9 +92,9 @@ const saveSettings = (tab, settings) => {
     })
 }
 
-const getEmailCounts = () => {
+const getEmailCounts = (address) => {
     return new Promise((resolve, reject) => {
-        browser.runtime.sendMessage({type: "EMAIL_COUNTS"}, (response) => {
+        browser.runtime.sendMessage({type: "EMAIL_COUNTS", address}, (response) => {
             if (response?.success) resolve(response?.data)
                 else reject(response?.error || 'Unkown error')
         })

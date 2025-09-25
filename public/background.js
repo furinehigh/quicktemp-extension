@@ -52,6 +52,18 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 });
 
                 const reqData = data.data.filter((m) => (m?.folder || []).includes(message.folder))
+                if (data.data.length){
+                    console.log('updating email counts from fetch mailbox listener')
+                    let emailCounts = await browser.storage.local.get('emailCounts')
+                    emailCounts = emailCounts.emailCounts || {}
+                    let emailCountsP = emailCounts[message.address]
+                    emailCountsP.Inbox = data.data.length
+                    emailCountsP.Unread = data.data.length
+                    await browser.storage.local.set({ emailCounts: {
+                        ...emailCounts,
+                        [message.address]: emailCountsP
+                    } })
+                }
 
                 sendResponse({ success: true, data: reqData });
             } catch (error) {
@@ -146,6 +158,12 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     },
                 });
 
+                let emailCounts = await browser.storage.local.get('emailCounts')
+                emailCounts = emailCounts.emailCounts || {}
+                emailCounts[message.address].Trash = (emailCounts[message.address].Trash || 1) - 1
+
+                await browser.storage.local.set({ emailCounts })
+
                 sendResponse({ success: true });
             } catch (err) {
                 console.error("DELETE_MESSAGE error:", err);
@@ -209,7 +227,8 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     Trash: 0
                 }
                 const result = await browser.storage.local.get('emailCounts')
-                const emailCounts = result.emailCounts || {};
+                let emailCounts = result.emailCounts || {};
+                emailCounts = emailCounts[message.address] || counts
 
                 if (Object.keys(result).length !== 0) {
                     counts = emailCounts
@@ -279,6 +298,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const cachedIndex = mailboxData.findIndex((msg) => msg.id === message.id);
                 let emailCounts = await browser.storage.local.get('emailCounts')
                 emailCounts = emailCounts.emailCounts || {}
+                let emailCountsP = emailCounts[message.address]
 
                 if (cachedIndex === -1) return;
 
@@ -294,11 +314,11 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const inSoT = inSpam || inTrash;
 
                 const incCounts = (f) => {
-                    emailCounts[f] = (emailCounts[f] || 0) + 1
+                     emailCountsP[f] = ( emailCountsP[f] || 0) + 1
                 }
 
                 const decCounts = (f) => {
-                    emailCounts[f] = (emailCounts[f] || 0) - 1
+                     emailCountsP[f] = ( emailCountsP[f] || 0) - 1
                 }
 
                 if (inInbox && toSoT) {
@@ -338,7 +358,10 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     }
                 }
                 await browser.storage.local.set({ savedMessages: updatedMessages })
-                await browser.storage.local.set({ emailCounts })
+                await browser.storage.local.set({ emailCounts: {
+                    ...emailCounts,
+                    [message.address]: emailCountsP
+                } })
                 sendResponse({ success: true })
             } catch (err) {
                 console.error("FOLDER_CHANGE error: ", err)
@@ -386,15 +409,19 @@ async function initWebSocket() {
         const isSpam = await spamFilter(data.html, data.from, data.text, data.subject)
         let counts = await browser.storage.local.get('emailCounts')
         counts = counts.emailCounts || {}
+        let countsP = counts[data.mailbox]
 
-        counts.Unread = (counts.Unread || 0) + 1;
+        countsP.Unread = (countsP.Unread || 0) + 1;
 
         if (isSpam) {
-            counts.Spam = (counts.Spam || 0) + 1;
+            countsP.Spam = (countsP.Spam || 0) + 1;
         } else {
-            counts.Inbox = (counts.Inbox || 0) + 1;
+            countsP.Inbox = (countsP.Inbox || 0) + 1;
         }
-        await browser.storage.local.set({ emailCounts: counts })
+        await browser.storage.local.set({ emailCounts: {
+            ...counts,
+            [data.mailbox]: countsP
+        } })
         data = { ...data, folder: isSpam ? ['Spam', 'Unread'] : ['Inbox', 'Unread'] }
 
         if (data.mailbox && savedMessages[data.mailbox]?.data) {
@@ -457,10 +484,50 @@ async function initExtension() {
         Read: 0,
         Unstarred: 0
     }
-    let result = await browser.storage.local.get('emailCounts')
-    result = result.emailCounts
+    let res = await browser.storage.local.get('emailCounts')
+    const resE = await browser.storage.local.get("tempEmail");
+    const email = resE.tempEmail;
+    let result = res?.emailCounts || {[email]: undefined}
+    result = result[email] || undefined
     if (result === undefined || Object.keys(result).length == 0) {
-        await browser.storage.local.set({emailCounts: counts})
+        await browser.storage.local.set({ emailCounts: {
+            ...res?.emailCounts || {},
+            [email]: counts
+        } })
+    }
+
+    let s = {
+        Layout: {
+            theme: {
+                name: 'light',
+                color: {
+                    bgColor: '#000000',
+                    color: '#ffffff',
+                    btnBg: ''
+                }
+            },
+            customTheme: [
+                {
+                    name: 'Custom 1',
+                    color: {
+                        bgColor: '#234232',
+                        borderColor: '#b1b1b1'
+                    }
+                }
+            ]
+        },
+        Spam: {
+            jRules: `[
+      { "field": "html", "includes": "free", "return": true },
+      { "field": "from", "includes": "scammer", "return": true }
+]`
+        }
+    }
+
+    let settings = await browser.storage.local.get('settings')
+    settings = settings.settings || {}
+    if (settings === undefined || Object.keys(settings).length == 0) {
+        await browser.storage.local.set({ settings: s })
     }
 }
 
