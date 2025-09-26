@@ -19,8 +19,9 @@ function App() {
   const [copied, setCopied] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [trigger, setTrigger] = useState(0)
   const eListRef = useRef(null);
-  useTheme()
+  useTheme(trigger)
 
   const handleOpenHistory = () => {
     setShowHistory(true);
@@ -65,7 +66,7 @@ function App() {
   return (
     <div className="p-4 font-sans w-[400px] h-[550px] bg-bg text-fg">
       <ToastProvider>
-        <Header />
+        <Header setTrigger={(d) => setTrigger(d)} />
         <div className="flex flex-row justify-between space-x-1 items-center">
           <div className="flex flex-row items-center w-full">
             <input

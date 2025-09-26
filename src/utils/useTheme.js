@@ -4,7 +4,7 @@ if (typeof browser === "undefined") {
     /* global chrome */
     var browser = chrome;
 }
-function useTheme() {
+function useTheme(trigger) {
     useEffect(() => {
         const prefersDark = window.matchMedia("(prefers-color-scheme: dark)")
 
@@ -38,10 +38,8 @@ function useTheme() {
                 Object.entries(theme[theme.active]).forEach(([key, value]) => {
                     document.documentElement.style.setProperty(`--${key}`, value)
                 })
-
                 return;
             }
-
 
         }
 
@@ -63,7 +61,7 @@ function useTheme() {
         prefersDark.addEventListener("change", () => {
             loadTheme(); // reloads for u
         });
-    }, [])
+    }, [trigger])
 }
 
 export default useTheme;

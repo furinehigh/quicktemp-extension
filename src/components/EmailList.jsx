@@ -43,15 +43,22 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   };
 
   const refreshCounts = async () => {
-    const counts = await getEmailCounts(mailbox);
-    setEmailCounts(counts)
+    await browser.storage.local.get('emailCounts', (res) => {
+
+      let emailCounts = res?.emailCounts;
+      emailCounts = emailCounts[mailbox]
+
+      if (Object.keys(res).length !== 0) {
+        setEmailCounts(emailCounts)
+      }
+    })
   };
 
   useEffect(() => {
     (async () => {
       await refreshCounts()
     })();
-  }, [])
+  }, [mailbox, emails])
 
   const DeleteDialog = ({ emailId, onClose }) => {
     return (
@@ -148,7 +155,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
             >
               {Folder}
               <span className={`${selectedFolder == Folder ? 'text-fg' : 'text-btnbg'} font-bold ml-1 `}>
-                {emailCounts[Folder]}
+                {emailCounts ? emailCounts[Folder] : 0}
               </span>
             </button>
           ))}
@@ -192,7 +199,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
               transition={{ duration: 0.2 }}
               className="group email-item border border-bbg rounded-lg p-3 shadow-sm cursor-pointer hover:bg-bbg overflow-hidden relative"
               onClick={() => {
-                if (!email.folder.includes('Read')) handleFolderChange(mailbox, email.id, 'Read')
+                if (email.folder.includes('Unread')) handleFolderChange(mailbox, email.id, 'Read')
                 onSelectEmail(email)
               }}
             >

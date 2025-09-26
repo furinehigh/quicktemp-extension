@@ -11,7 +11,7 @@ if (typeof browser === "undefined") {
     /* global chrome */
     var browser = chrome;
 }
-function Setting() {
+function Setting({ setTrigger }) {
     const [open, setOpen] = useState(false)
     const [selectedNav, setSelectedNav] = useState('Spam')
     const [settings, setSettings] = useState({})
@@ -156,6 +156,7 @@ function Setting() {
             addToast('Changes saved', 'success')
             setSaved(true)
             setCurrChanges({})
+            setTrigger(Date.now())
         } else {
             addToast('Error ecc while saving', 'error')
             setSaved(false)
@@ -273,11 +274,21 @@ function Setting() {
                                             </div>
                                             <div className='border rounded border-bbg flex items-center space-x-1 p-1'>
                                                 {(Object.values(settings?.Layout?.customTheme || {})).map((t, i) => (
-                                                    <div key={i} onClick={() => handleSelectTheme(i)} style={{ borderColor: t.bbg }} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == i : settings?.Layout?.theme?.active == i) ? 'border-2' : ''} grid grid-cols-2 gap-0 border cursor-pointer`}>
-                                                        <div style={{ backgroundColor: t.bg }} className='w-1.5 h-1.5'></div>
-                                                        <div style={{ backgroundColor: t.fg }} className='w-1.5 h-1.5'></div>
-                                                        <div style={{ backgroundColor: t.btnbg }} className='w-1.5 h-1.5'></div>
-                                                        <div style={{ backgroundColor: t.bbg }} className='w-1.5 h-1.5'></div>
+                                                    <div className='relative group w-full'>
+                                                        <div key={i} onClick={() => handleSelectTheme(i)}
+                                                         style={{ borderColor: t.bbg }}
+                                                          className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0
+                                                           ? currChanges?.Layout?.theme?.active == i
+                                                            : settings?.Layout?.theme?.active == i)
+                                                             ? 'border-2' : ''} grid grid-cols-2 gap-0 border cursor-pointer`}>
+                                                            <div style={{ backgroundColor: t.bg }} className='w-1.5 h-1.5'></div>
+                                                            <div style={{ backgroundColor: t.fg }} className='w-1.5 h-1.5'></div>
+                                                            <div style={{ backgroundColor: t.btnbg }} className='w-1.5 h-1.5'></div>
+                                                            <div style={{ backgroundColor: t.bbg }} className='w-1.5 h-1.5'></div>
+                                                        </div>
+                                                        <div className='absolute hidden group-hover:inline bg-bbg text-fg'>
+                                                            
+                                                        </div>
                                                     </div>
                                                 ))}
                                                 <button onClick={() => setOpenThemeAdd(true)} className={`border border-bbg bg-bg p-1`}>

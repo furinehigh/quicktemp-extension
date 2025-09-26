@@ -64,7 +64,7 @@ You have successfully added the extenion to your Firefox browser for testing.
 This is my first extension in my life, so i'm keeping it real. Using AI only if i don't get something for hours of brain scratching(i scratch my brain a lot coz why not)...
 - Haven't use copilot as its exceded its limits (btw its annonying as hell)
 - Only using ChatGPT after losing lots of hair (i scratch my brain first, coz i wanna improve myself not large companies' models... btw who wrote these true words?)
-- Started from scratch with CRA(create react app, u dumb)
+- Started from scratch with CRA(create react app, duh)
 - Learning and building
 
 # What i did while coding?

@@ -410,15 +410,15 @@ async function initWebSocket() {
 
         const isSpam = await spamFilter(data.html, data.from, data.text, data.subject)
         let counts = await browser.storage.local.get('emailCounts')
-        counts = counts.emailCounts || {}
+        counts = counts.emailCounts || {[data.mailbox]: {}}
         let countsP = counts[data.mailbox]
 
-        countsP.Unread = (countsP.Unread || 0) + 1;
+        countsP.Unread = (countsP?.Unread || 0) + 1;
 
         if (isSpam) {
-            countsP.Spam = (countsP.Spam || 0) + 1;
+            countsP.Spam = (countsP?.Spam || 0) + 1;
         } else {
-            countsP.Inbox = (countsP.Inbox || 0) + 1;
+            countsP.Inbox = (countsP?.Inbox || 0) + 1;
         }
         await browser.storage.local.set({
             emailCounts: {
