@@ -21,7 +21,8 @@ function Setting({ setTrigger }) {
     const [shake, setShake] = useState(false)
     const [error, setError] = useState('')
     const [openThemeAdd, setOpenThemeAdd] = useState(false)
-    const [themeUpdateData, setThemeUpdateData] = useState({id: '', data: undefined})
+    const [themeUpdateData, setThemeUpdateData] = useState({ id: '', data: undefined })
+    const [bLEmail, setBLEmail] = useState('')
     const { addToast } = useToast()
 
     useEffect(() => {
@@ -185,7 +186,7 @@ function Setting({ setTrigger }) {
 
     const handleThemeDelete = async (name) => {
         let newData = settings[selectedNav]
-        if (newData.theme.active === name){
+        if (newData.theme.active === name) {
             addToast(`Can't delete, this theme is in use`, 'error')
             return;
         }
@@ -202,8 +203,54 @@ function Setting({ setTrigger }) {
     }
 
     const handleThemeUpdate = (id, data) => {
-        setThemeUpdateData({id, data})
+        setThemeUpdateData({ id, data })
         setOpenThemeAdd(true)
+    }
+
+    // blacklist stuff
+    const handleAddBL = async () => {
+        let senders = settings[selectedNav]?.senders || []
+        if (!checkEmailValidity(bLEmail)) {
+            setError('Invalid email')
+            return;
+        }
+        if (senders.includes(bLEmail)) {
+            addToast('Sender allready exists', 'error')
+            return;
+        } else {
+            senders.push(bLEmail)
+        }
+
+        const res = await saveSettings(selectedNav, { senders })
+        setSettings({
+            ...settings,
+            [selectedNav]: {
+                senders
+            }
+        })
+
+        if (res.success) {
+            addToast('Sender blacklisted', 'success')
+            setBLEmail('')
+        }
+    }
+
+    const removeBLSender = async (email) => {
+        let senders = settings[selectedNav]?.senders || []
+
+        senders = senders.filter(e => e !== email)
+
+        const res = await saveSettings(selectedNav, { senders })
+        setSettings({
+            ...settings,
+            [selectedNav]: {
+                senders
+            }
+        })
+
+        if (res.success) {
+            addToast('Sender removed', 'success')
+        }
     }
 
     const navTabs = [
@@ -227,10 +274,12 @@ function Setting({ setTrigger }) {
 
                         <div className='flex  justify-between items-center'>
                             <h3 className="text-lg font-semibold mb-2">Settings</h3>
-                            <X className='inline text-fg' onClick={() => {
+                            <button className='inline text-fg' onClick={() => {
                                 if (saved) setOpen(false)
                                 else handleShake()
-                            }} size={16} />
+                            }}>
+                                <X size={16} />
+                            </button>
                         </div>
                         <div className="flex space-x-2 mb-2">
                             {navTabs.map((nav) => (
@@ -265,6 +314,8 @@ function Setting({ setTrigger }) {
                                                 }
 
                                             }} className='w-full max-h-[180px] border border-bbg rounded bg-bg text-fg bg-opacity-70'></textarea>
+
+                                            {error && <p className='text-red-400'>{error}</p>}
                                             <p className='text-gray-500 text-[10px]'>
                                                 <strong>from</strong> : Email from, {' '}
                                                 <strong>subject</strong> : Email subject, {' '}
@@ -332,8 +383,9 @@ function Setting({ setTrigger }) {
                                                     </div>
                                                 ))}
                                                 {(Object.values(settings?.Layout?.customTheme || {})).length < 17 && <button onClick={() => {
-                                                    setThemeUpdateData({id: '', data: undefined})
-                                                    setOpenThemeAdd(true)}} className={`border border-bbg bg-bg p-1`}>
+                                                    setThemeUpdateData({ id: '', data: undefined })
+                                                    setOpenThemeAdd(true)
+                                                }} className={`border border-bbg bg-bg p-1`}>
                                                     <Plus size={10} />
                                                 </button>}
                                             </div>
@@ -359,25 +411,28 @@ function Setting({ setTrigger }) {
                                             </h1>
                                             <p className='text-gray-500'>Add all the senders you don't want to recieve emails from</p>
                                         </div>
-                                        <div className=''>
-                                            <input placeholder='visit@hackclub.com' name='senders' value={(Object.keys(currChanges).length === 0 || currChanges == undefined) ? settings?.Blacklist?.senders : currChanges?.Blacklist?.senders} onChange={(e) => {
-                                                const v = checkEmailValidity(e.target.value)
-                                                if (v) {
-                                                    setError('')
-                                                    handleFieldChange(e)
-                                                } else {
-                                                    setError(v)
-                                                }
-                                            }} className='w-full max-h-[180px] border border-bbg rounded bg-bg text-fg bg-opacity-70'></input>
-                                            
+                                        <div className='flex justify-center space-x-2'>
+                                            <input placeholder='pls@blacklist.me' name='senders' value={bLEmail} onChange={(e) => { setBLEmail(e.target.value) }} className='w-full max-h-[180px] border border-bbg rounded bg-bg text-fg bg-opacity-70 p-1' />
+                                            <button onClick={handleAddBL} className='border rounded border-bbg bg-btnbg text-fg px-1 py-0.5'>Add</button>
                                         </div>
+                                        {error && <p className='text-red-400'>{error}</p>}
+                                    </div>
+                                    {(settings[selectedNav]?.senders.length == 0 || settings[selectedNav] == undefined) && <p className='text-center w-full'>No sender is blacklisted yet.</p>}
+                                    <div className='space-y-2'>
+                                        {(settings[selectedNav]?.senders || []).map((e, i) => (
+                                            <div className='px-1 py-0.5 border border-bbg bg-bg rounded flex justify-between items-center'>
+                                                <p className='text-opacity-70'>{e}</p>
+                                                <button onClick={() => removeBLSender(e)} className='rounded border border-bbg p-1'>
+                                                    <X size={12} />
+                                                </button>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             ) : (
                                 <div></div>
                             )}
                         </div>
-                        {error && <p className='text-red-400'>{error}</p>}
                         <AnimatePresence>
                             {!saved &&
                                 <motion.div

@@ -4,9 +4,14 @@ if (typeof browser === "undefined") {
     var browser = chrome;
 }
 
-async function getActiveTabId() {
-    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-    return tab?.id;
+const extractEmail = (from) => {
+    if (from == undefined) {
+        return 'no@example.com'
+    }
+    const match = from.match(/<([^>]+)>/);
+
+    const email = match ? match[1] : null;
+    return email
 }
 
 const API_KEY = '2a6819691fmshb9cf5179a87ac31p145ea2jsn136a1fc2af63'
@@ -34,12 +39,19 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     throw new Error(`API Error: ${res.status}`);
                 }
 
+
+                let settings = await browser.storage.local.get('settings')
+                settings = settings.settings.Blacklist
+                let blacklistSenders = settings.senders
+
                 const data = await res.json();
                 const { savedMessages } = await browser.storage.local.get("savedMessages") || { savedMessages: {} };
                 if (savedMessages?.[message.address]?.data) {
                     const existingIds = new Set(savedMessages[message.address].data.map(msg => msg.id));
                     data.data = [...savedMessages[message.address].data, ...data.data.filter(msg => !existingIds.has(msg.id))];
                 }
+                // filtering out emails from blacklisted senders
+                data.data = data.data.filter(d => !blacklistSenders.includes(extractEmail(d.from)))
                 browser.storage.local.set({
                     savedMessages: {
                         [message.address]: {
@@ -53,18 +65,25 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
                 const reqData = data.data.filter((m) => (m?.folder || []).includes(message.folder))
                 if (data.data.length) {
-                    let emailCounts = await browser.storage.local.get('emailCounts')
-                    emailCounts = emailCounts.emailCounts || {}
-                    let emailCountsP = emailCounts[message.address]
-                    emailCountsP.Inbox = data.data.length
-                    emailCountsP.Unread = data.data.length
+                    let { emailCounts = {} } = await browser.storage.local.get("emailCounts");
+
+                    const existingCounts = emailCounts[message.address] || {};
+
+                    const updatedCounts = Object.fromEntries(
+                        Object.keys(existingCounts).map((k) => [
+                            k,
+                            data.data.filter((e) => e.folder.includes(k)).length,
+                        ])
+                    );
+
                     await browser.storage.local.set({
                         emailCounts: {
                             ...emailCounts,
-                            [message.address]: emailCountsP
-                        }
-                    })
+                            [message.address]: updatedCounts,
+                        },
+                    });
                 }
+
 
                 sendResponse({ success: true, data: reqData });
             } catch (error) {
@@ -293,18 +312,18 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "FOLDER_CHANGE") {
         (async () => {
             try {
-                const { savedMessages } = await browser.storage.local.get("savedMessages") || { savedMessages: {} };
+                const { savedMessages = {} } = await browser.storage.local.get("savedMessages");
                 const mailboxData = savedMessages?.[message.address]?.data || [];
                 const cachedIndex = mailboxData.findIndex((msg) => msg.id === message.id);
-                let emailCounts = await browser.storage.local.get('emailCounts')
-                emailCounts = emailCounts.emailCounts || {}
-                let emailCountsP = emailCounts[message.address]
+
+                let { emailCounts = {} } = await browser.storage.local.get("emailCounts");
+                let emailCountsP = emailCounts[message.address] || {};
 
                 if (cachedIndex === -1) return;
 
                 let cached = mailboxData[cachedIndex];
-
                 let folders = cached.folder;
+
                 const inInbox = folders.includes("Inbox");
                 const inSpam = folders.includes("Spam");
                 const inTrash = folders.includes("Trash");
@@ -314,60 +333,63 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const inSoT = inSpam || inTrash;
 
                 const incCounts = (f) => {
-                    emailCountsP[f] = (emailCountsP[f] || 0) + 1
-                }
+                    emailCountsP[f] = (emailCountsP[f] || 0) + 1;
+                };
 
                 const decCounts = (f) => {
-                    emailCountsP[f] = (emailCountsP[f] || 0) - 1
-                }
+                    emailCountsP[f] = Math.max((emailCountsP[f] || 0) - 1, 0);
+                };
 
                 if (inInbox && toSoT) {
                     const idx = folders.indexOf("Inbox");
                     if (idx !== -1) folders[idx] = moveTo;
-                    decCounts('Inbox')
-                    incCounts(moveTo)
+                    decCounts("Inbox");
+                    incCounts(moveTo);
                 } else if (inSoT && moveTo === "Inbox") {
                     folders = folders.filter((f) => f !== "Spam" && f !== "Trash");
                     folders.unshift("Inbox");
-                    decCounts(moveTo)
-                    incCounts('Inbox')
-                } else if (moveTo === 'Read') {
+                    decCounts("Spam");
+                    decCounts("Trash");
+                    incCounts("Inbox");
+                } else if (moveTo === "Read") {
                     const idx = folders.indexOf("Unread");
                     if (idx !== -1) folders[idx] = moveTo;
-                    decCounts('Unread')
-                    incCounts('Read')
-                } else if (moveTo === 'Unstarred') {
+                    decCounts("Unread");
+                    incCounts("Read");
+                } else if (moveTo === "Unstarred") {
                     const idx = folders.indexOf("Starred");
                     if (idx !== -1) folders[idx] = moveTo;
-                    decCounts('Starred')
-                    incCounts('Unstarred')
+                    decCounts("Starred");
+                    incCounts("Unstarred");
                 } else {
                     folders.push(moveTo);
-                    incCounts(moveTo)
+                    incCounts(moveTo);
                 }
 
                 cached = { ...cached, folder: [...new Set(folders)] };
-                const newMailboxData = [...mailboxData]
+                const newMailboxData = [...mailboxData];
                 newMailboxData[cachedIndex] = cached;
 
                 const updatedMessages = {
                     ...savedMessages,
                     [message.address]: {
                         ...savedMessages[message.address],
-                        data: newMailboxData
-                    }
-                }
-                await browser.storage.local.set({ savedMessages: updatedMessages })
+                        data: newMailboxData,
+                    },
+                };
+
+                await browser.storage.local.set({ savedMessages: updatedMessages });
                 await browser.storage.local.set({
                     emailCounts: {
                         ...emailCounts,
-                        [message.address]: emailCountsP
-                    }
-                })
-                sendResponse({ success: true })
+                        [message.address]: emailCountsP,
+                    },
+                });
+
+                sendResponse({ success: true });
             } catch (err) {
-                console.error("FOLDER_CHANGE error: ", err)
-                sendResponse({ success: false, error: err.message })
+                console.error("FOLDER_CHANGE error: ", err);
+                sendResponse({ success: false, error: err.message });
             }
         })();
 
@@ -404,13 +426,19 @@ async function initWebSocket() {
     socket.onopen = () => console.log("WebSocket connected");
     socket.onmessage = async (event) => {
         let data = JSON.parse(event.data);
+        let settings = await browser.storage.local.get('settings')
+        settings = settings.settings.Blacklist
+        let blacklistSenders = settings.senders
+        if (blacklistSenders.includes(extractEmail(data?.from))) {
+            return;
+        }
 
         const result = await browser.storage.local.get("savedMessages");
         const savedMessages = result.savedMessages || {};
 
         const isSpam = await spamFilter(data.html, data.from, data.text, data.subject)
         let counts = await browser.storage.local.get('emailCounts')
-        counts = counts.emailCounts || {[data.mailbox]: {}}
+        counts = counts.emailCounts || { [data.mailbox]: {} }
         let countsP = counts[data.mailbox]
 
         countsP.Unread = (countsP?.Unread || 0) + 1;
@@ -464,13 +492,14 @@ const spamFilter = async (html, from, text, subject) => {
     const jRules = JSON.parse(settings.Spam?.jRules || "");
 
     if (!jRules) return false;
-    console.log(jRules)
-
-    return applySpamRules({ html, from, text, subject }, jRules);
+    const result = applySpamRules({ html, from, text, subject }, jRules);
+    console.log(result)
+    return result
 };
 
 function applySpamRules(ctx, rules) {
     for (const rule of rules) {
+        console.log(rule, ctx)
         if (ctx[rule.field]?.includes(rule.includes)) {
             return rule.return;
         }
@@ -519,7 +548,7 @@ async function initExtension() {
                 },
                 active: 'light'
             },
-            customTheme:{
+            customTheme: {
                 '3b12f1df-5232-4804-897e-917bf397618a': {
                     bg: '#000000',
                     fg: '#ffffff',
@@ -533,6 +562,9 @@ async function initExtension() {
       { "field": "html", "includes": "free", "return": true },
       { "field": "from", "includes": "scammer", "return": true }
 ]`
+        },
+        Blacklist: {
+            senders: []
         }
     }
 

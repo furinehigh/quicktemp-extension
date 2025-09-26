@@ -121,14 +121,14 @@ export default function EmailView({ email, onClose }) {
                     <div className="flex items-center gap-2">
                         <button
                             onClick={openInNewWindow}
-                            className="text-gray-500 hover:text-black text-xs border px-2 py-0.5 rounded-md"
+                            className=" text-xs border px-2 py-0.5 rounded-md"
                             title="Open in New Window"
                         >
                             <CopyPlus size={14} className="inline" />
                         </button>
                         <button
                             onClick={onClose}
-                            className="text-gray-500 hover:text-black text-sm"
+                            className="text-sm"
                         >
                             <X size={16} className="inline" />
                         </button>
