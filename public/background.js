@@ -53,7 +53,6 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
                 const reqData = data.data.filter((m) => (m?.folder || []).includes(message.folder))
                 if (data.data.length) {
-                    console.log('updating email counts from fetch mailbox listener')
                     let emailCounts = await browser.storage.local.get('emailCounts')
                     emailCounts = emailCounts.emailCounts || {}
                     let emailCountsP = emailCounts[message.address]
@@ -256,7 +255,6 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 settings = {
                     [message.tab]: settings[message.tab]
                 }
-                console.log('from bg.js', message.tab, settings[message.tab])
 
                 sendResponse({ success: true, data: settings });
             } catch (err) {
@@ -463,7 +461,6 @@ initWebSocket();
 const spamFilter = async (html, from, text, subject) => {
     let settings = await browser.storage.local.get("settings");
     settings = settings.settings || {};
-    console.log(settings.Spam?.jRules)
     const jRules = JSON.parse(settings.Spam?.jRules || "");
 
     if (!jRules) return false;
