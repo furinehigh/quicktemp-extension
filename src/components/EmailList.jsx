@@ -44,7 +44,6 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
 
   const refreshCounts = async () => {
     const counts = await getEmailCounts(mailbox);
-    console.log('for debugging from refreshCount', counts)
     setEmailCounts(counts)
   };
 
@@ -111,7 +110,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
         setCurrentPage(1);
         refreshCounts()
         const audio = new Audio("/new-email.mp3");
-        audio.play().catch(() => console.log("Autoplay blocked until user interacts."));
+        audio.play().catch(() => console.warn("Autoplay blocked until user interacts."));
       }
     };
     browser.runtime.onMessage.addListener(listener);

@@ -25,21 +25,17 @@ function Setting() {
     useEffect(() => {
         try {
             getCurrChanges(async ({ currChanges, firstKey }) => {
-                console.log('rh 1')
                 if (currChanges !== undefined && navTabs.includes(firstKey)) {
-                    console.log('rh 2')
                     setSaved(false)
                     setSelectedNav(capitalizeFirst(firstKey))
                     setCurrChanges(currChanges)
                 } else {
-                    console.log('rh 3')
                     const res = await getSettings(selectedNav);
-                    console.log('rh 3 res', res)
                     setSettings(res)
                 }
             })
         } catch (e) {
-            console.log(e)
+            console.error(e)
             addToast('Error loading settings', 'error')
         }
     }, [selectedNav])
@@ -74,14 +70,12 @@ function Setting() {
                 );
             }
 
-            console.log("currChanges, firstKey", currChanges, firstKey);
             cb({ currChanges, firstKey });
         });
     };
 
 
     useEffect(() => {
-        console.log('saving crr changes to local storage')
         browser.storage.local.set({ currChanges })
     }, [currChanges])
 

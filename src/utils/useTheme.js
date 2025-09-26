@@ -14,7 +14,6 @@ function useTheme() {
 
             if (!theme) return;
 
-            console.log('active theme', theme?.active)
             if (theme?.active === 'system') {
                 const mode = prefersDark ? 'dark' : 'light'
                 document.documentElement.setAttribute('data-theme', mode)
@@ -26,7 +25,7 @@ function useTheme() {
                 }
                 return;
             }
-            
+
             if (customTheme[theme?.active]) {
                 Object.entries(customTheme[theme?.active]).forEach(([key, value]) => {
                     document.documentElement.style.setProperty(`--${key}`, value)
@@ -36,7 +35,6 @@ function useTheme() {
             }
 
             if (theme[theme?.active]) {
-                console.log('applying this theme', theme[theme.active])
                 Object.entries(theme[theme.active]).forEach(([key, value]) => {
                     document.documentElement.style.setProperty(`--${key}`, value)
                 })
@@ -44,7 +42,7 @@ function useTheme() {
                 return;
             }
 
-            
+
         }
 
         const loadTheme = async () => {
@@ -56,10 +54,9 @@ function useTheme() {
         loadTheme();
 
         browser.storage.onChanged.addListener((changes, area) => {
-            console.log('from onChanged listener')
             if (area == 'local' && changes.settings) {
-                const theme = changes.settings.newValue.Layout.theme;
-                applyTheme(theme);
+                const layout = changes.settings.newValue.Layout;
+                applyTheme(layout);
             }
         })
 
@@ -69,4 +66,4 @@ function useTheme() {
     }, [])
 }
 
-export default useTheme
+export default useTheme;
