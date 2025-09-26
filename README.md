@@ -4,7 +4,7 @@
 Temporary email extension for your browser with crazy features that you might have not seen before (i'm just assuming lol)
 
 # Get the Extension
-- **Firefox ADD-ONS:** https://addons.mozilla.org/en-US/firefox/addon/quicktemp-best-temp-mail-ui/
+- **Firefox ADD-ONS:** https://addons.mozilla.org/en-US/firefox/addon/quicktemp
 
 ## Video Demo
 
@@ -42,15 +42,15 @@ You have successfully added the extenion to your Firefox browser for testing.
 # Features
 - Good name n logo (at least i think so 👀)
 - Simple n cool UI for better UX
-- Persistent mailbox name and its messages
+- Persistent mailboxes and its messages
 - Notifications for new emails
-- History of your email names
-- Multiple folders for less chaos 
-- Email contents are purified and is opened in a sandbox
-- Custom Spam filter
+- History of your mailboxes
+- Multiple folder based email management for less chaos 
+- Email contents are purified and is opened in a sandbox for ur security
+- Custom Spam filter so that u have full control over ur incomming emails
+- Best n most advanced UI with crazy customizations (this will be my USP :)
 
 # Upcomming featuers
-- Best n most advanced UI with crazy customizations (this will be my USP :)
 - Search through your emails
 - Auto deletion of emails
 
