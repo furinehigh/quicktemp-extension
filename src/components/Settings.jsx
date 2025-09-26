@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Moon, Plus, Settings, Sun, SunMoon, X } from 'lucide-react'
+import { Moon, Pen, Plus, Settings, Sun, SunMoon, Trash, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { getSettings, saveSettings } from '../utils/api'
 import { useToast } from '../contexts/ToastContext'
@@ -20,6 +20,7 @@ function Setting({ setTrigger }) {
     const [shake, setShake] = useState(false)
     const [error, setError] = useState('')
     const [openThemeAdd, setOpenThemeAdd] = useState(false)
+    const [themeUpdateData, setThemeUpdateData] = useState({id: '', data: undefined})
     const { addToast } = useToast()
 
     useEffect(() => {
@@ -110,12 +111,23 @@ function Setting({ setTrigger }) {
         setSaved(false)
     }
 
-    const handleAddTheme = async (data) => {
-        const Layout = {
-            theme: settings[selectedNav].theme,
-            customTheme: {
-                ...settings[selectedNav].customTheme,
-                [Object.keys(settings[selectedNav].customTheme).length]: data
+    const handleAddTheme = async (data, updateId) => {
+        let Layout;
+        if (updateId == '') {
+            Layout = {
+                theme: settings[selectedNav].theme,
+                customTheme: {
+                    ...settings[selectedNav].customTheme,
+                    [crypto.randomUUID()]: data
+                }
+            }
+        } else {
+            Layout = {
+                theme: settings[selectedNav].theme,
+                customTheme: {
+                    ...settings[selectedNav].customTheme,
+                    [updateId]: data
+                }
             }
         }
         const res = await saveSettings(selectedNav, Layout)
@@ -125,7 +137,8 @@ function Setting({ setTrigger }) {
         })
 
         if (res.success) {
-            addToast('Custom theme added', 'success')
+            if (updateId === '') addToast('Custom theme added', 'success')
+            else addToast('Custom theme updated', 'success')
             setOpenThemeAdd(false)
         }
     }
@@ -175,6 +188,25 @@ function Setting({ setTrigger }) {
         } else {
             handleShake()
         }
+    }
+
+    const handleThemeDelete = async (name) => {
+        let newData = settings[selectedNav]
+        delete newData.customTheme[name]
+        const res = await saveSettings(selectedNav, newData)
+        setSettings({
+            ...settings,
+            [selectedNav]: newData
+        })
+
+        if (res.success) {
+            addToast('Custom theme deleted', 'success')
+        }
+    }
+
+    const handleThemeUpdate = (id, data) => {
+        setThemeUpdateData({id, data})
+        setOpenThemeAdd(true)
     }
 
     const navTabs = [
@@ -267,33 +299,46 @@ function Setting({ setTrigger }) {
                                         </div>
                                     </div>
                                     <div className='border rounded border-bbg p-2'>
-                                        <div className='flex justify-between items-center'>
-                                            <div className=''>
+                                        <div className='flex justify-between items-center w-full'>
+                                            <div className='w-2/3'>
                                                 <h1 className='text-sm font-bold'>Custom Theme</h1>
                                                 <p className='text-gray-500'>Create your custom theme</p>
                                             </div>
-                                            <div className='border rounded border-bbg flex items-center space-x-1 p-1'>
-                                                {(Object.values(settings?.Layout?.customTheme || {})).map((t, i) => (
-                                                    <div className='relative group w-full'>
-                                                        <div key={i} onClick={() => handleSelectTheme(i)}
-                                                         style={{ borderColor: t.bbg }}
-                                                          className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0
-                                                           ? currChanges?.Layout?.theme?.active == i
-                                                            : settings?.Layout?.theme?.active == i)
-                                                             ? 'border-2' : ''} grid grid-cols-2 gap-0 border cursor-pointer`}>
+                                            <div className='border rounded border-bbg flex items-center gap-1 flex-wrap p-1'>
+                                                {(Object.entries(settings?.Layout?.customTheme || {})).map(([n, t]) => (
+                                                    <div className='relative group'>
+                                                        <div key={n} onClick={() => handleSelectTheme(n)}
+                                                            style={{ borderColor: t.bbg }}
+                                                            className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0
+                                                                ? currChanges?.Layout?.theme?.active == n
+                                                                : settings?.Layout?.theme?.active == n)
+                                                                ? 'border-2' : ''} grid grid-cols-2 gap-0 border cursor-pointer`}>
                                                             <div style={{ backgroundColor: t.bg }} className='w-1.5 h-1.5'></div>
                                                             <div style={{ backgroundColor: t.fg }} className='w-1.5 h-1.5'></div>
                                                             <div style={{ backgroundColor: t.btnbg }} className='w-1.5 h-1.5'></div>
                                                             <div style={{ backgroundColor: t.bbg }} className='w-1.5 h-1.5'></div>
                                                         </div>
-                                                        <div className='absolute hidden group-hover:inline bg-bbg text-fg'>
-                                                            
-                                                        </div>
+                                                        <AnimatePresence>
+                                                            <motion.div
+                                                                initial={{ opacity: 0, y: 20 }}
+                                                                animate={{ opacity: 1, y: 0 }}
+                                                                exit={{ opacity: 0, y: 20 }}
+                                                                className='absolute right-[-20px] z-50 hidden group-hover:flex items-center bg-bg text-fg border border-bbg rounded-lg p-0.5'>
+                                                                <button onClick={() => handleThemeUpdate(n, t)} className=' px-0.5 py-0.5 transition duration-200 hover:bg-bbg border-r border-r-bbg rounded-tl-lg rounded-bl-lg'>
+                                                                    <Pen size={14} />
+                                                                </button>
+                                                                <button onClick={() => handleThemeDelete(n, t)} className=' px-0.5 py-0.5 transition duration-200 text-red-500 hover:bg-bbg rounded-tr-lg rounded-br-lg'>
+                                                                    <Trash size={14} />
+                                                                </button>
+                                                            </motion.div>
+                                                        </AnimatePresence>
                                                     </div>
                                                 ))}
-                                                <button onClick={() => setOpenThemeAdd(true)} className={`border border-bbg bg-bg p-1`}>
+                                                {(Object.values(settings?.Layout?.customTheme || {})).length < 17 && <button onClick={() => {
+                                                    setThemeUpdateData({id: '', data: undefined})
+                                                    setOpenThemeAdd(true)}} className={`border border-bbg bg-bg p-1`}>
                                                     <Plus size={10} />
-                                                </button>
+                                                </button>}
                                             </div>
                                         </div>
                                     </div>
@@ -335,7 +380,7 @@ function Setting({ setTrigger }) {
                     </div>
                 </motion.div>
             )}
-            <AddTheme isOpen={openThemeAdd} onClose={() => setOpenThemeAdd(false)} onSubmit={handleAddTheme} />
+            <AddTheme isOpen={openThemeAdd} onClose={() => setOpenThemeAdd(false)} onSubmit={handleAddTheme} updateData={themeUpdateData} />
         </div>
     )
 }

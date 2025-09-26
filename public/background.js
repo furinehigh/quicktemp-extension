@@ -519,7 +519,7 @@ async function initExtension() {
                 active: 'light'
             },
             customTheme:{
-                0: {
+                '3b12f1df-5232-4804-897e-917bf397618a': {
                     bg: '#000000',
                     fg: '#ffffff',
                     btnbg: '#3b82f6',
