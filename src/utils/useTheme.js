@@ -27,15 +27,15 @@ function useTheme() {
                 return;
             }
             
-            if (customTheme[Number(theme?.active)][theme?.active]) {
-                Object.entries(customTheme[Number(theme?.active)][theme.active]).forEach(([key, value]) => {
+            if (customTheme[theme?.active]) {
+                Object.entries(customTheme[theme?.active]).forEach(([key, value]) => {
                     document.documentElement.style.setProperty(`--${key}`, value)
                 })
 
                 return;
             }
 
-            if (theme?.active.length > 2 && theme[theme?.active]) {
+            if (theme[theme?.active]) {
                 console.log('applying this theme', theme[theme.active])
                 Object.entries(theme[theme.active]).forEach(([key, value]) => {
                     document.documentElement.style.setProperty(`--${key}`, value)

@@ -140,7 +140,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
           {Folders.map((Folder) => (
             <button
               key={Folder}
-              className={`px-1 py-0.5 rounded text-xs  ${Folder === selectedFolder ? "bg-blue-500 text-white" : "text-fg"
+              className={`px-1 py-0.5 rounded text-xs  ${Folder === selectedFolder ? "bg-btnbg text-fg" : "text-fg"
                 }`}
               onClick={() => {
                 setSelectedFolder(Folder);
@@ -148,7 +148,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
               }}
             >
               {Folder}
-              <span className={`${selectedFolder == Folder ? 'text-white' : 'text-blue-500'} font-bold ml-1 `}>
+              <span className={`${selectedFolder == Folder ? 'text-fg' : 'text-btnbg'} font-bold ml-1 `}>
                 {emailCounts[Folder]}
               </span>
             </button>
@@ -156,14 +156,14 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
         </div>
         <div className="flex justify-end items-center space-x-1 w-full">
           <button
-            className="p-1 rounded-full border hover:bg-bbg disabled:opacity-40 disabled:cursor-not-allowed"
+            className="p-1 rounded-full border border-bbg hover:bg-bbg disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
           >
             <ChevronLeft size={16} />
           </button>
           <button
-            className="p-1 rounded-full border hover:bg-bbg disabled:opacity-40 disabled:cursor-not-allowed"
+            className="p-1 rounded-full border border-bbg hover:bg-bbg disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
           >

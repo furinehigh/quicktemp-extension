@@ -119,12 +119,10 @@ function Setting() {
     const handleAddTheme = async (data) => {
         const Layout = {
             theme: settings[selectedNav].theme,
-            customTheme: [
+            customTheme: {
                 ...settings[selectedNav].customTheme,
-                {
-                    [settings[selectedNav].customTheme.length]: data
-                }
-            ]
+                [Object.keys(settings[selectedNav].customTheme).length]: data
+            }
         }
         const res = await saveSettings(selectedNav, Layout)
         setSettings({
@@ -214,7 +212,7 @@ function Setting() {
                             {navTabs.map((nav) => (
                                 <button
                                     key={nav}
-                                    className={`px-2 py-1 rounded text-xs border-1 border-bbg ${nav === selectedNav ? "bg-blue-500 text-white" : "text-fg"
+                                    className={`px-2 py-1 rounded text-xs border-1 border-bbg ${nav === selectedNav ? "bg-btnbg text-fg" : "text-fg"
                                         }`}
                                     onClick={() => handleNavChange(nav)}
                                 >
@@ -280,12 +278,12 @@ function Setting() {
                                                 <p className='text-gray-500'>Create your custom theme</p>
                                             </div>
                                             <div className='border rounded border-bbg flex items-center space-x-1 p-1'>
-                                                {(settings?.Layout?.customTheme || []).map((t, i) => (
-                                                    <div onClick={() => handleSelectTheme(i)} style={{ borderColor: t[i].bbg }} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == i : settings?.Layout?.theme?.active == i) ? 'border-2' : ''} grid grid-cols-2 gap-0 border cursor-pointer`}>
-                                                        <div style={{ backgroundColor: t[i].bg }} className='w-1.5 h-1.5'></div>
-                                                        <div style={{ backgroundColor: t[i].fg }} className='w-1.5 h-1.5'></div>
-                                                        <div style={{ backgroundColor: t[i].btnbg }} className='w-1.5 h-1.5'></div>
-                                                        <div style={{ backgroundColor: t[i].bbg }} className='w-1.5 h-1.5'></div>
+                                                {(Object.values(settings?.Layout?.customTheme || {})).map((t, i) => (
+                                                    <div key={i} onClick={() => handleSelectTheme(i)} style={{ borderColor: t.bbg }} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == i : settings?.Layout?.theme?.active == i) ? 'border-2' : ''} grid grid-cols-2 gap-0 border cursor-pointer`}>
+                                                        <div style={{ backgroundColor: t.bg }} className='w-1.5 h-1.5'></div>
+                                                        <div style={{ backgroundColor: t.fg }} className='w-1.5 h-1.5'></div>
+                                                        <div style={{ backgroundColor: t.btnbg }} className='w-1.5 h-1.5'></div>
+                                                        <div style={{ backgroundColor: t.bbg }} className='w-1.5 h-1.5'></div>
                                                     </div>
                                                 ))}
                                                 <button onClick={() => setOpenThemeAdd(true)} className={`border border-bbg bg-bg p-1`}>
@@ -324,7 +322,7 @@ function Setting() {
                                     <div>Unsaved changes</div>
                                     <div className='flex space-x-2 '>
                                         <button onClick={handleDiscardChanges} className='border rounded border-bbg py-1 px-2'>Discard</button>
-                                        <button onClick={handleChangesSaved} className='border rounded bg-blue-500 text-white py-1 px-2'>Save</button>
+                                        <button onClick={handleChangesSaved} className='border rounded bg-btnbg text-fg py-1 px-2'>Save</button>
                                     </div>
                                 </motion.div>
                             }

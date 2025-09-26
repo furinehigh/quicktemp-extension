@@ -27,6 +27,7 @@ module.exports = {
       colors: {
         bg: "var(--bg)",
         fg: "var(--fg)",
+        btnbg: "var(--btnbg)",
         bbg: "var(--bbg)"
       },
     },

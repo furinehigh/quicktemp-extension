@@ -510,27 +510,25 @@ async function initExtension() {
                 light: {
                     bg: '#ffffff',
                     fg: '#000000',
-                    btnBg: '#3b82f6',
+                    btnbg: '#3b82f6',
                     bbg: '#d1d5db'
                 },
                 dark: {
                     bg: '#000000',
                     fg: '#ffffff',
-                    btnBg: '#3b82f6',
+                    btnbg: '#3b82f6',
                     bbg: '#374151'
                 },
                 active: 'light'
             },
-            customTheme: [
-                {
-                    0: {
-                        bg: '#000000',
-                        fg: '#ffffff',
-                        btnBg: '',
-                        bbg: '#374151'
-                    }
+            customTheme:{
+                0: {
+                    bg: '#000000',
+                    fg: '#ffffff',
+                    btnbg: '#3b82f6',
+                    bbg: '#374151'
                 }
-            ]
+            }
         },
         Spam: {
             jRules: `[
