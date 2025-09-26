@@ -41,6 +41,13 @@ function useTheme(trigger) {
                 return;
             }
 
+            if (theme['system']) {
+                Object.entries(theme['system']).forEach(([key, value]) => {
+                    document.documentElement.style.setProperty(`--${key}`, value)
+                })
+                return;
+            }
+
         }
 
         const loadTheme = async () => {

@@ -464,6 +464,7 @@ const spamFilter = async (html, from, text, subject) => {
     const jRules = JSON.parse(settings.Spam?.jRules || "");
 
     if (!jRules) return false;
+    console.log(jRules)
 
     return applySpamRules({ html, from, text, subject }, jRules);
 };

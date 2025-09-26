@@ -4,8 +4,9 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { getSettings, saveSettings } from '../utils/api'
 import { useToast } from '../contexts/ToastContext'
 import isEqual from "lodash/isEqual";
-import { capitalizeFirst } from '../utils/utils'
+import { capitalizeFirst, checkEmailValidity, checkJSONValidity } from '../utils/utils'
 import AddTheme from './settings/AddTheme'
+
 /* global browser */
 if (typeof browser === "undefined") {
     /* global chrome */
@@ -48,14 +49,6 @@ function Setting({ setTrigger }) {
         }, 400);
     }
 
-
-    const checkJSONValidity = (json) => {
-        try {
-            return JSON.parse(json)
-        } catch (e) {
-            return e.message
-        }
-    }
 
     const getCurrChanges = (cb) => {
         browser.storage.local.get(["currChanges"], (res) => {
@@ -192,6 +185,10 @@ function Setting({ setTrigger }) {
 
     const handleThemeDelete = async (name) => {
         let newData = settings[selectedNav]
+        if (newData.theme.active === name){
+            addToast(`Can't delete, this theme is in use`, 'error')
+            return;
+        }
         delete newData.customTheme[name]
         const res = await saveSettings(selectedNav, newData)
         setSettings({
@@ -354,8 +351,27 @@ function Setting({ setTrigger }) {
                                     </div> */}
                                 </div>
                             ) : selectedNav == 'Blacklist' ? (
-                                <div>
-
+                                <div className='flex flex-col space-y-2'>
+                                    <div className='border border-bbg space-y-2 p-2'>
+                                        <div>
+                                            <h1 className='text-sm font-bold'>
+                                                Blacklist senders
+                                            </h1>
+                                            <p className='text-gray-500'>Add all the senders you don't want to recieve emails from</p>
+                                        </div>
+                                        <div className=''>
+                                            <input placeholder='visit@hackclub.com' name='senders' value={(Object.keys(currChanges).length === 0 || currChanges == undefined) ? settings?.Blacklist?.senders : currChanges?.Blacklist?.senders} onChange={(e) => {
+                                                const v = checkEmailValidity(e.target.value)
+                                                if (v) {
+                                                    setError('')
+                                                    handleFieldChange(e)
+                                                } else {
+                                                    setError(v)
+                                                }
+                                            }} className='w-full max-h-[180px] border border-bbg rounded bg-bg text-fg bg-opacity-70'></input>
+                                            
+                                        </div>
+                                    </div>
                                 </div>
                             ) : (
                                 <div></div>

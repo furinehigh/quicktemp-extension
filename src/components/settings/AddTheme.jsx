@@ -11,7 +11,6 @@ function AddTheme({ isOpen, onClose, updateData, onSubmit }) {
     });
 
     useEffect(() => {
-        console.log(updateData?.data)
         if (updateData?.data !== undefined) {
             setData(updateData?.data)
         }

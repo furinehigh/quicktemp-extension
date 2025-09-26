@@ -33,7 +33,7 @@ export function ToastProvider({ children }) {
                             exit={{ x: '100%' }}
                             transition={{ duration: 0.5 }}
                             key={toast.id}
-                            className={`px-4 py-2 rounded shadow-md transition-all bg-bg text-fg border-bbg flex items-center`}
+                            className={`px-4 py-2 rounded border shadow-md transition-all bg-bg text-fg border-bbg flex items-center`}
                         >
                             <span className="mr-2">
                                 {toast.type == 'info' ? <Info className="inline" size={13} />
