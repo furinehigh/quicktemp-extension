@@ -135,8 +135,62 @@ const extractVCode = (html, opts = {}) => {
         minDigits: 4,
         maxDigits: 8,
         minAlphaNum: 6,
-        keywords: ['otp', 'one-time'],
+        maxAlphaNum: 12,
+        keywords: ['otp', 'one-time', 'one time', 'verification', 'verify', 'code', 'passcode', 'pin', 'security code', 'auth code', 'authentication'],
+        windowChars: 80,
         ...opts,
-        
+
     }
+
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(html || '', 'text/html')
+    const text = (doc.body && doc.body.innerText) ? doc.body.innerText.replace(/\u00A0/g, '') : ''
+    const attrText = Array.from(doc.querySelectorAll('*'))
+    .map(el => Array.from(el.attributes || []).map(a => a.value).join(' '))
+    .join(' ')
+
+    const allText = (text + '\n' + attrText).replace(/\s+/g, '')
+    const numbericRegex = new RegExp(`\\b\\d{${opts.minDigits},${opts.maxDigits}}\\b`, 'g')
+    const alphaNumRegex = new RegExp(`\\b[A-Za-z0-9]{${opts.minAlphaNum},${opts.maxAlphaNum}}\\b`, 'g')
+
+    const queryCodeRegex = /[?&](?:code|otp|token|confirmation|verify|v)[=:]?([A-Zz-z0-9\-._]{4,})/gi
+    const tokenLikeRegex = new RegExp(`\\b[0-9A-Za-z\\-_.]{${opts.minDigits},${opts.maxAlphaNum}}\\b`, 'g')
+
+
+    const candidates = new Map()
+
+    function pushCandidates(value, idx, src, meta = {}){
+        if (!value) return;
+        const key = String(value).trim()
+        if(!key) return;
+        
+        if (!candidates.has(key)){
+            candidates.set(key, {token: key, positions: [], sources: new Set(), score: 0, meta: {}})
+        }
+        const entry = candidates.get(key)
+        entry.positions.push(idx || -1)
+        entry.sources.add(src || 'text')
+        Object.assign(entry.meta, meta || {})
+
+    }
+
+    let m;
+    while ((m = queryCodeRegex.exec(allText))){
+        pushCandidates(m[1], m.index, 'url_query', {reason: 'in_url_query'})
+    }
+
+    const raw = allText
+    while ((m = numbericRegex.exec(raw))){
+        pushCandidates(m[0], m.index, 'numeric')
+
+    }
+
+    while ((m=alphaNumRegex.exec(raw))){
+        pushCandidates(m[0], m.index, 'aplhanum')
+    }
+
+    while ((m=tokenLikeRegex.exec(raw))) {
+        pushCandidates(m[0], m.index, 'token_like')
+    }
+
 }
