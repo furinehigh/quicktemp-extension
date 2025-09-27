@@ -231,7 +231,47 @@ const extractVCode = (html, opts = {}) => {
             const distance = Math.abs(kp.idx - pos)
             if (distance < opts.windowChars){
                 const boost = Math.max(0, 40 - Math.floor(distance / 2))
+                score += boost
+                entry.meta.nearKeyword = kp.kw
             }
         }
+        const contextWindow = raw.slice(Math.max(0, pos-20), pos +Math.min(20, token.length + 20)).toLowerCase()
+        if (/[^\w](:|is|code|otp|pin|passcode)\s*$/.test(contextWindow) || /:\s*$/.test(contextWindow)){
+            score += 20
+        }
+
+        if (entry.score.has('url_query') || entry.sources.has('href') || lowerText.slice(Math.max(0, pos - 50), pos + token.length + 50).includes('http')){
+            score += 30
+            entry.meta.findInUrl = true
+        }
+        if (isLikelyDate(token)) {
+            score -= 40
+            entry.meta.reason = (entry.meta.reason || '') + 'date_like'
+        }
+        if (isLikelyTime(token)) {
+            score -= 30
+            entry.meta.reason = (entry.meta.reason || '') + 'time_like'
+        }
+        if (isEmail(token)) {
+            score -= 60
+            entry.meta.reason = (entry.meta.reason || '') + 'email_like'
+        }
+        if (isCurrency(token)) {
+            score -= 30
+            entry.meta.reason = (entry.meta.reason || '') + 'currency_like'
+        }
+
+        if (entry.positions.length > 3) score -= 10
+
+        entry.score  = Math.max(10, Math.round(score))
+    }
+
+    const list = Array.from(candidates.values())
+    .filter(e => e.score > 0)
+    .sort((a,b) => b.score - a.score)
+
+    return {
+        best: list[0] || null,
+        all: list
     }
 }
