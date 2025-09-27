@@ -42,15 +42,17 @@ const showEmailDropdown = (input, sugg) => {
     const isDark = window.matchMedia('(prefer-color-scheme: dark)').matches
     box.id = 'qt-suggestions'
     box.style.position = "absolute"
-    box.style.border = style.border
     if (isDark) {
         box.style.background = '#000'
         box.style.color = '#fff'
+        box.style.border = '1px solid #fff'
     } else {
         box.style.background = '#fff'
         box.style.color = '#000'
+        box.style.border = '1px solid #000'
     }
-    box.style.font = style.font
+    box.style.fontFamily = 'sans-serif'
+    box.style.fontSize = '15px'
     box.style.zIndex = 2147483647 // the largest i could put 😏
 
     sugg.forEach(s => {
@@ -65,28 +67,31 @@ white-space: nowrap;
 </div>`
         item.style.padding = '4px 8px'
         item.style.cursor = 'pointer'
-        item.style.borderBottom = style.border
-
-
+        item.style.borderBottom = '1px solid #ccc'
+        
+        
         item.addEventListener('mousedown', () => {
             input.value = s
             input.dispatchEvent(new Event("input", { bubbles: true }))
             removeEmailDropdown()
         })
-
+        
         box.appendChild(item)
     })
-
+    
     const genEmail = document.createElement('div')
+    const about = document.createElement('div')
+    genEmail.style.borderBottom = '1px solid #ccc'
 
     genEmail.innerHTML = `
-        <div style='display: flex; align-items: center; padding: 4px 8px;'>
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shuffle-icon lucide-shuffle"><path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/></svg>
-        <p style='margin-right: 2px;'>Gen Random Email</p>
+        <div style='display: flex; align-items: center; padding: 4px 8px; cursor: pointer;'>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shuffle-icon lucide-shuffle"><path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/></svg>
+        <p style='margin-left: 4px;'>Gen Random Email</p>
         </div>
         `
-    genEmail.style.padding = '4px 8px'
-    genEmail.style.cursor = 'pointer'
+
+    about.innerText = 'You can turn the suggestions off from the extensions "Additional" settings. By QuickTime'
+    about.style.fontSize = '8px'
 
     genEmail.addEventListener('mousedown', async () => {
         input.value = await getRandomEmail()
@@ -94,7 +99,7 @@ white-space: nowrap;
         removeEmailDropdown()
     })
     box.appendChild(genEmail)
-
+    box.appendChild(about)
     const rect = input.getBoundingClientRect()
     box.style.top = `${rect.bottom + window.scrollY}px`
     box.style.left = `${rect.left + window.scrollX}px`
@@ -102,7 +107,7 @@ white-space: nowrap;
 
     document.body.appendChild(box)
     input.addEventListener("blur", () => removeEmailDropdown(), { once: true })
-    input.setAttribute("autocomplete", "off");
+    input.setAttribute("autocomplete", "new-password");
     input.setAttribute("autocorrect", "off");
     input.setAttribute("autocapitalize", "off");
     input.setAttribute("spellcheck", "false");
@@ -122,5 +127,16 @@ const getRandomEmail = async () => {
     const res = await browser.runtime.sendMessage({ action: 'genRandomEmail' })
     if (res && res.tempEmail) {
         return res.tempEmail || null
+    }
+}
+
+const extractVCode = (html, opts = {}) => {
+    opts = {
+        minDigits: 4,
+        maxDigits: 8,
+        minAlphaNum: 6,
+        keywords: ['otp', 'one-time'],
+        ...opts,
+        
     }
 }
