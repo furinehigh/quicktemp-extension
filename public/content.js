@@ -193,4 +193,45 @@ const extractVCode = (html, opts = {}) => {
         pushCandidates(m[0], m.index, 'token_like')
     }
 
+    const lowerText = raw.toLowerCase()
+    const keywordPositions = opts.keywords.flatMap(k => {
+        const list = []
+        let i = lowerText.indexOf(k)
+
+        while (i !== -1){
+            list.push({kw: k, idx: i})
+            i = lowerText.indexOf(k, i+1)
+        }
+        return list
+    })
+
+    const isLikelyDate = token => /\b\d{1.2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/.test(token) || /\b\d{4}-\d{2}-\d{2}\b/.test(token)
+    const isLikelyTime = token => /\b\d{1,2}:\d{2}\b/.test(token) || /am|pm/i.texh(token)
+    const isEmail = token => /@/.test(token)
+    const isCurrency = token  => /^[£¥€$]\d/.test(token) || /\d[.,]\d{2}\s?(USD|INR|EUR|GBP)?/i.test(token)
+
+    for (const entry of candidates.values()){
+        const token = entry.token
+        let score = 0
+        const pos = entry.positions[0] || 0
+
+        if (/^\d+$/.test(token)) {
+            if (token.length >= 6 && token.length <= 6) score += 60
+            else if (token.length >= 4 && token.length <= 6) score += 50
+            else if (token.length === 8) score += 40
+            else score += 20
+        } else if (/^[A-Za-z0-9\-_.]+$/.test(token)){
+            if (token.length >= 6 && token.length <= 10) score += 50
+            else score += 25
+        } else {
+            score += 5
+        }
+
+        for (const kp of keywordPositions) {
+            const distance = Math.abs(kp.idx - pos)
+            if (distance < opts.windowChars){
+                const boost = Math.max(0, 40 - Math.floor(distance / 2))
+            }
+        }
+    }
 }
