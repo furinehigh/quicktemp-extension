@@ -471,6 +471,14 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
 
+    if (message.action === 'getEmailSuggestions'){
+        (async () => {
+            const {tempEmail = ''} = await browser.storage.local.get('tempEmail')
+            sendResponse({suggestions: [tempEmail]})
+        })();
+        return true
+    }
+
 });
 
 
@@ -658,18 +666,3 @@ async function initExtension() {
 }
 
 initExtension()
-
-// sending auto email suggestions
-const sendSuggestions = async () => {
-    const {tempEmail = ''} = await browser.storage.local.get('tempEmail')
-    const suggestions = []
-    suggestions.push(tempEmail)
-
-    browser.tabs.query({active: true, currentWindow: true}).then(tabs => {
-        browser.tabs.sendMessage(tabs[0].id, {
-            action: 'showEmailSuggestions',
-            suggestions
-        })
-    })
-}
-sendSuggestions()

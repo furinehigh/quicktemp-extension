@@ -69,14 +69,11 @@ const showDropdown = (input, sugg) => {
 
 }
 
-browser.runtime.onMessage.addListener((msg, sender, sendRes) => {
-    if (msg.action == 'showEmailSuggestions') {
-        const activeInput = document.activeElement
-        if (emailInputs.has(activeInput)){
-            showDropdown(activeInput, msg.suggestions || [])
-            sendRes({success: true})
-        } else {
-            sendRes({success: false, error: 'active input is not an email input :('})
+emailInputs.forEach(inp => {
+    inp.addEventListener('focus', async () => {
+        const res = await browser.runtime.sendMessage({action: 'getEmailSuggestions'})
+        if (res && res.suggestions){
+            showDropdown(inp, res.suggestions)
         }
-    }
+    })
 })
