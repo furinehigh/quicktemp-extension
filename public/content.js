@@ -1,3 +1,11 @@
+
+/* global browser */
+let dltEmailId = null;
+if (typeof browser === "undefined") {
+  /* global chrome */
+  var browser = chrome;
+}
+
 let emailInputs = new Set();
 const detectEmailInputs = () => {
 
@@ -27,4 +35,48 @@ const removeDropdown = () => {
 const showDropdown = (input, sugg) => {
     removeDropdown();
 
+    if (!sugg.length) return;
+    const box = document.createElement("div")
+    box.id = 'qt-suggestions'
+    box.style.position = "absolute"
+    box.style.border = "1px solid #ccc"
+    box.style.background = "#fff"
+    box.style.zIndex = 9994 // btw 4 is my lucky no :)
+
+    sugg.forEach(s => {
+        const item = document.createElement('div')
+        item.textContent = s
+        item.style.padding = '4px 8px'
+        item.style.cursor = 'pointer'
+
+
+        item.addEventListener('mousedown', () => {
+            input.value = s
+            input.dispatchEvent(new Event("input", {bubbles: true}))
+            removeDropdown()
+        })
+
+        box.appendChild(item)
+    })
+
+    const rect = input.getBoundingClientRect()
+    box.style.top = `${rect.bottom + window.scrollY}px`
+    box.style.left = `${rect.left + window.scrollX}px`
+    box.style.width = `${rect.width}px`
+
+    document.body.appendChild(box)
+    input.addEventListener("blur", () => removeDropdown(), {once: true})
+
 }
+
+browser.runtime.onMessage.addListener((msg, sender, sendRes) => {
+    if (msg.action == 'showEmailSuggestions') {
+        const activeInput = document.activeElement
+        if (emailInputs.has(activeInput)){
+            showDropdown(activeInput, msg.suggestions || [])
+            sendRes({success: true})
+        } else {
+            sendRes({success: false, error: 'active input is not an email input :('})
+        }
+    }
+})
