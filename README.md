@@ -54,7 +54,7 @@ You have successfully added the extenion to your Firefox browser for testing.
 # Upcomming featuers
 - Search through your emails
 - Auto deletion of emails
-- Auto extraction of verification codes from your email
+- Auto extraction of verification codes from your email - No AI n everything is internal
 
 # Permissions needed for this extension
 - Storage (it will store your garbage in your 'Trash')
