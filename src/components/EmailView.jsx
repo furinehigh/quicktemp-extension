@@ -112,7 +112,7 @@ export default function EmailView({ email, onClose }) {
                 {/* Header */}
                 {email.folder.includes('Spam') && <div className="flex items-center space-x-2 p-2 mb-1 bg-gray-400 text-white text-xs">
                     <OctagonAlert size={16} className="inline text-red-500" />
-                    <p>This message was marked as Spam by the spam filtering script</p>
+                    <p>This message was either marked as Spam by your spam filtering script or you.</p>
                 </div>}
                 <div className="flex justify-between items-center mb-1">
                     <h2 className="font-semibold text-sm leading-tight truncate pr-2">
@@ -135,7 +135,6 @@ export default function EmailView({ email, onClose }) {
                     </div>
                 </div>
 
-                {/* Meta Info */}
                 <p className="text-xs text-gray-500 leading-snug">
                     <span className="font-medium">From:</span> {email.from}
                 </p>
@@ -143,7 +142,6 @@ export default function EmailView({ email, onClose }) {
                     <span className="font-medium">To:</span> {email.to}
                 </p>
 
-                {/* Email Content */}
                 <div className="border-t pt-2 flex-1 min-h-[200px]">
                     {loading ? (
                         <p className="text-center text-gray-400 text-sm">

@@ -312,15 +312,12 @@ function Setting({ setTrigger }) {
                                                 } else {
                                                     setError(v)
                                                 }
-
                                             }} className='w-full max-h-[180px] border border-bbg rounded bg-bg text-fg bg-opacity-70'></textarea>
 
                                             {error && <p className='text-red-400'>{error}</p>}
                                             <p className='text-gray-500 text-[10px]'>
                                                 <strong>from</strong> : Email from, {' '}
                                                 <strong>subject</strong> : Email subject, {' '}
-                                                <strong>html</strong> : Email HTML Code, {' '}
-                                                <strong>text</strong> : Email Text
                                             </p>
                                         </div>
                                     </div>

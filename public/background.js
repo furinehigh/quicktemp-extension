@@ -4,6 +4,48 @@ if (typeof browser === "undefined") {
     var browser = chrome;
 }
 
+let isStorageLocked = false;
+const updateQueue = [];
+
+async function updateSavedMessages(changeFunction) {
+    return new Promise((resolve, reject) => {
+        updateQueue.push({ changeFunction, resolve, reject });
+
+        if (isStorageLocked) {
+            console.log("Storage is locked. Queuing update.");
+            return;
+        }
+
+        processQueue();
+    });
+}
+
+async function processQueue() {
+    if (updateQueue.length === 0) {
+        isStorageLocked = false;
+        return;
+    }
+
+    isStorageLocked = true;
+    const { changeFunction, resolve, reject } = updateQueue.shift();
+
+    try {
+        const { savedMessages = {} } = await browser.storage.local.get("savedMessages");
+        const updatedMessages = changeFunction(savedMessages);
+
+        await browser.storage.local.set({ savedMessages: updatedMessages });
+
+        console.log("Update successful. Unlocking storage.");
+        resolve({ success: true });
+    } catch (error) {
+        console.error("Failed to update storage:", error);
+        reject(error);
+    } finally {
+        processQueue();
+    }
+}
+
+
 const extractEmail = (from) => {
     if (from == undefined) {
         return 'no@example.com'
@@ -100,7 +142,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
             try {
                 if (!message.address || !message.id) throw new Error("Missing params");
 
-                const { savedMessages } = await browser.storage.local.get("savedMessages") || { savedMessages: {} };
+                const { savedMessages = {} } = await browser.storage.local.get("savedMessages");
                 const mailboxData = savedMessages?.[message.address]?.data || [];
                 const cached = mailboxData.find((msg) => msg.id === message.id);
 
@@ -121,21 +163,30 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 );
 
                 if (!res.ok) throw new Error(`API Error: ${res.status}`);
+                const apiResponse = await res.json();
+                const fetchedData = apiResponse.data;
 
-                const data = await res.json();
+                const changeFn = (currentSavedMessages) => {
+                    const currentMailboxData = currentSavedMessages?.[message.address]?.data || [];
 
-                const updatedMailbox = mailboxData.map((msg) =>
-                    msg.id === message.id ? { ...msg, ...data.data } : msg
-                );
+                    const updatedMailbox = currentMailboxData.map((msg) =>
+                        msg.id === message.id ? { ...msg, ...fetchedData } : msg
+                    );
 
-                await browser.storage.local.set({
-                    savedMessages: {
-                        ...savedMessages,
-                        [message.address]: { data: updatedMailbox, timestamp: Date.now() },
-                    },
-                });
+                    const updatedMessages = {
+                        ...currentSavedMessages,
+                        [message.address]: {
+                            ...currentSavedMessages[message.address],
+                            data: updatedMailbox
+                        },
+                    };
+                    return updatedMessages;
+                };
 
-                sendResponse({ success: true, data: data.data });
+                await updateSavedMessages(changeFn);
+
+                sendResponse({ success: true, data: fetchedData });
+
             } catch (err) {
                 console.error("FETCH_MESSAGE error:", err);
                 sendResponse({ success: false, error: err.message });
@@ -312,73 +363,96 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "FOLDER_CHANGE") {
         (async () => {
             try {
-                const { savedMessages = {} } = await browser.storage.local.get("savedMessages");
-                const mailboxData = savedMessages?.[message.address]?.data || [];
-                const cachedIndex = mailboxData.findIndex((msg) => msg.id === message.id);
+                const { savedMessages: initialSavedMessages = {} } = await browser.storage.local.get("savedMessages");
+                const initialMailboxData = initialSavedMessages?.[message.address]?.data || [];
+                const originalEmail = initialMailboxData.find((msg) => msg.id === message.id);
 
-                let { emailCounts = {} } = await browser.storage.local.get("emailCounts");
+                if (!originalEmail) {
+                    throw new Error(`Email with id ${message.id} not found.`);
+                }
+                const originalFolders = originalEmail.folder;
+                const messagesChangeFn = (currentSavedMessages) => {
+                    const mailboxData = currentSavedMessages?.[message.address]?.data || [];
+                    const cachedIndex = mailboxData.findIndex((msg) => msg.id === message.id);
+
+                    if (cachedIndex === -1) return currentSavedMessages;
+
+                    const cached = mailboxData[cachedIndex];
+                    let folders = [...cached.folder];
+                    const moveTo = message.folder;
+
+                    const inInbox = folders.includes("Inbox");
+                    const inSpam = folders.includes("Spam");
+                    const inTrash = folders.includes("Trash");
+                    const toSoT = moveTo === "Spam" || moveTo === "Trash";
+                    const inSoT = inSpam || inTrash;
+
+                    if (inInbox && toSoT) {
+                        folders = folders.filter((f) => f !== "Inbox");
+                        folders.unshift(moveTo);
+                    } else if (inSoT && moveTo === "Inbox") {
+                        folders = folders.filter((f) => f !== "Spam" && f !== "Trash");
+                        folders.unshift("Inbox");
+                    } else if (moveTo === "Read") {
+                        folders = folders.filter((f) => f !== "Unread");
+                        folders.push("Read");
+                    } else if (moveTo === "Unstarred") {
+                        folders = folders.filter((f) => f !== "Starred");
+                    } else if (moveTo === "Starred") {
+                        folders.push(moveTo);
+                    } else {
+                        if (!folders.includes(moveTo)) folders.push(moveTo);
+                    }
+
+                    const updatedCached = { ...cached, folder: [...new Set(folders)] };
+                    const newMailboxData = [...mailboxData];
+                    newMailboxData[cachedIndex] = updatedCached;
+
+                    return {
+                        ...currentSavedMessages,
+                        [message.address]: {
+                            ...currentSavedMessages[message.address],
+                            data: newMailboxData,
+                        },
+                    };
+                };
+
+                await updateSavedMessages(messagesChangeFn);
+
+                const { emailCounts = {} } = await browser.storage.local.get("emailCounts");
                 let emailCountsP = emailCounts[message.address] || {};
-
-                if (cachedIndex === -1) return;
-
-                let cached = mailboxData[cachedIndex];
-                let folders = cached.folder;
-
-                const inInbox = folders.includes("Inbox");
-                const inSpam = folders.includes("Spam");
-                const inTrash = folders.includes("Trash");
-
                 const moveTo = message.folder;
-                const toSoT = moveTo === "Spam" || moveTo === "Trash";
-                const inSoT = inSpam || inTrash;
 
-                const incCounts = (f) => {
-                    emailCountsP[f] = (emailCountsP[f] || 0) + 1;
-                };
+                const incCounts = (f) => { emailCountsP[f] = (emailCountsP[f] || 0) + 1; };
+                const decCounts = (f) => { emailCountsP[f] = Math.max((emailCountsP[f] || 0) - 1, 0); };
 
-                const decCounts = (f) => {
-                    emailCountsP[f] = Math.max((emailCountsP[f] || 0) - 1, 0);
-                };
+                const wasInInbox = originalFolders.includes("Inbox");
+                const wasInSpam = originalFolders.includes("Spam");
+                const wasInTrash = originalFolders.includes("Trash");
+                const wasUnread = originalFolders.includes("Unread");
+                const wasStarred = originalFolders.includes("Starred");
 
-                if (inInbox && toSoT) {
-                    const idx = folders.indexOf("Inbox");
-                    if (idx !== -1) folders[idx] = moveTo;
+                if (wasInInbox && (moveTo === "Spam" || moveTo === "Trash")) {
                     decCounts("Inbox");
-                    incCounts(moveTo);
-                } else if (inSoT && moveTo === "Inbox") {
-                    folders = folders.filter((f) => f !== "Spam" && f !== "Trash");
-                    folders.unshift("Inbox");
-                    decCounts("Spam");
-                    decCounts("Trash");
-                    incCounts("Inbox");
-                } else if (moveTo === "Read") {
-                    const idx = folders.indexOf("Unread");
-                    if (idx !== -1) folders[idx] = moveTo;
+                }
+                if ((wasInSpam || wasInTrash) && moveTo === "Inbox") {
+                    if (wasInSpam) decCounts("Spam");
+                    if (wasInTrash) decCounts("Trash");
+                }
+                if (moveTo === "Spam") incCounts("Spam");
+                if (moveTo === "Trash") incCounts("Trash");
+                if (moveTo === "Inbox") incCounts("Inbox");
+
+                if (wasUnread && moveTo === "Read") {
                     decCounts("Unread");
-                    incCounts("Read");
-                } else if (moveTo === "Unstarred") {
-                    const idx = folders.indexOf("Starred");
-                    if (idx !== -1) folders[idx] = moveTo;
+                }
+                if (wasStarred && moveTo === "Unstarred") {
                     decCounts("Starred");
-                    incCounts("Unstarred");
-                } else {
-                    folders.push(moveTo);
-                    incCounts(moveTo);
+                }
+                if (!wasStarred && moveTo === "Starred") {
+                    incCounts("Starred");
                 }
 
-                cached = { ...cached, folder: [...new Set(folders)] };
-                const newMailboxData = [...mailboxData];
-                newMailboxData[cachedIndex] = cached;
-
-                const updatedMessages = {
-                    ...savedMessages,
-                    [message.address]: {
-                        ...savedMessages[message.address],
-                        data: newMailboxData,
-                    },
-                };
-
-                await browser.storage.local.set({ savedMessages: updatedMessages });
                 await browser.storage.local.set({
                     emailCounts: {
                         ...emailCounts,
@@ -387,6 +461,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 });
 
                 sendResponse({ success: true });
+
             } catch (err) {
                 console.error("FOLDER_CHANGE error: ", err);
                 sendResponse({ success: false, error: err.message });
@@ -395,6 +470,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         return true;
     }
+
 });
 
 
@@ -439,7 +515,15 @@ async function initWebSocket() {
         const isSpam = await spamFilter(data.html, data.from, data.text, data.subject)
         let counts = await browser.storage.local.get('emailCounts')
         counts = counts.emailCounts || { [data.mailbox]: {} }
-        let countsP = counts[data.mailbox]
+        let countsP = counts[data.mailbox] || {
+            Inbox: 0,
+            Unread: 0,
+            Starred: 0,
+            Spam: 0,
+            Trash: 0,
+            Read: 0,
+            Unstarred: 0
+        }
 
         countsP.Unread = (countsP?.Unread || 0) + 1;
 
@@ -493,13 +577,11 @@ const spamFilter = async (html, from, text, subject) => {
 
     if (!jRules) return false;
     const result = applySpamRules({ html, from, text, subject }, jRules);
-    console.log(result)
     return result
 };
 
 function applySpamRules(ctx, rules) {
     for (const rule of rules) {
-        console.log(rule, ctx)
         if (ctx[rule.field]?.includes(rule.includes)) {
             return rule.return;
         }
@@ -559,7 +641,7 @@ async function initExtension() {
         },
         Spam: {
             jRules: `[
-      { "field": "html", "includes": "free", "return": true },
+      { "field": "subject", "includes": "free", "return": true },
       { "field": "from", "includes": "scammer", "return": true }
 ]`
         },

@@ -199,7 +199,10 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
               transition={{ duration: 0.2 }}
               className="group email-item border border-bbg rounded-lg p-3 shadow-sm cursor-pointer hover:bg-bbg overflow-hidden relative"
               onClick={() => {
-                if (email.folder.includes('Unread')) handleFolderChange(mailbox, email.id, 'Read')
+                if (email.folder.includes('Unread'))
+                  {
+                    handleFolderChange(mailbox, email.id, 'Read')
+                  } 
                 onSelectEmail(email)
               }}
             >
@@ -213,7 +216,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
                 <div className="text-xs text-gray-500 whitespace-nowrap">
                   {new Date(email.date).toLocaleTimeString([], {
                     hour: "2-digit",
-                    minute: "2-digit",
+                    minute: "2-digit"
                   })}
                 </div>
               </div>
