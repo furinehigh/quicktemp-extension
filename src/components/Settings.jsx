@@ -14,7 +14,7 @@ if (typeof browser === "undefined") {
 }
 function Setting({ setTrigger }) {
     const [open, setOpen] = useState(false)
-    const [selectedNav, setSelectedNav] = useState('Spam')
+    const [selectedNav, setSelectedNav] = useState('Layout')
     const [settings, setSettings] = useState({})
     const [currChanges, setCurrChanges] = useState({})
     const [saved, setSaved] = useState(true)
@@ -253,11 +253,24 @@ function Setting({ setTrigger }) {
         }
     }
 
+    // additional stuffs
+    const handleChangeSugg = (value) => {
+        let Additional = {
+            ...settings.Additioanl,
+            suggestions: value
+        }
+        setCurrChanges((prev) => ({
+            ...prev,
+            Additional
+        }))
+        setSaved(false)
+    }
+
     const navTabs = [
         'Layout',
         'Spam',
         'Blacklist',
-        'Trash'
+        'Additional'
     ]
 
     return (
@@ -424,6 +437,25 @@ function Setting({ setTrigger }) {
                                                 </button>
                                             </div>
                                         ))}
+                                    </div>
+                                </div>
+                            ) : selectedNav == 'Additional' ? (
+                                <div className='flex flex-col space-y-2'>
+                                    <div className='border rounded border-bbg p-2'>
+                                        <div className='flex justify-between items-center'>
+                                            <div className=''>
+                                                <h1 className='text-sm font-bold'>Suggestions</h1>
+                                                <p className='text-gray-500'>Do you want your temp email to be shown below email fields</p>
+                                            </div>
+                                            <div className='border rounded border-bbg flex items-center'>
+                                                <button onClick={() => handleChangeSugg(true)} className={`${(Object.keys(currChanges?.Additional || {}).length !== 0 ? currChanges?.Additional?.suggestions == true : settings?.Additional?.suggestions == true) ? 'bg-bbg' : ''} border-r border-r-bbg p-1`}>
+                                                    Yes
+                                                </button>
+                                                <button onClick={() => handleChangeSugg(false)} className={`${(Object.keys(currChanges?.Additional || {}).length !== 0 ? currChanges?.Additional?.suggestions == false : settings?.Additional?.suggestions == false) ? 'bg-bbg' : ''} border-r border-r-bbg p-1`}>
+                                                    No
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             ) : (

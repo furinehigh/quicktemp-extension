@@ -471,16 +471,40 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;
     }
 
-    if (message.action === 'getEmailSuggestions'){
+    if (message.action === 'getEmailSuggestions') {
         (async () => {
-            const {tempEmail = ''} = await browser.storage.local.get('tempEmail')
-            sendResponse({suggestions: [tempEmail]})
+            const { settings = {} } = await browser.storage.local.get('settings')
+            const { tempEmail = '' } = await browser.storage.local.get('tempEmail')
+            if (settings.Additional.suggestions) {
+                sendResponse({ suggestions: [tempEmail] })
+            }
+        })();
+        return true
+    }
+
+    if (message.action === `genRandomEmail`) {
+        (async () => {
+            const domains = ["areueally.info", "junkstopper.info"];
+
+            const rndDomain = domains[Math.floor(Math.random() * domains.length)];
+            const tempEmail = randomString(10) + '@' + rndDomain
+            await browser.storage.local.set({tempEmail})
+            initWebSocket()
+            sendResponse({tempEmail})
         })();
         return true
     }
 
 });
 
+const randomString = (length) => {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
 
 async function showNotification(email) {
     const title = "📧 New Email Received!";
@@ -655,6 +679,9 @@ async function initExtension() {
         },
         Blacklist: {
             senders: []
+        },
+        Additional: {
+            suggestions: true
         }
     }
 
