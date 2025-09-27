@@ -208,7 +208,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
             >
               <div className="flex justify-between">
                 <div className="min-w-0">
-                  <p className="font-semibold text-fg text-sm">{email.from || "Unknown"}</p>
+                  <p className="font-semibold text-fg truncate text-sm">{email.from || "Unknown"}</p>
                   <p className="text-gray-500 truncate text-xs">
                     {email.subject || "(No Subject)"}
                   </p>
