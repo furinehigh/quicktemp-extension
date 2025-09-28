@@ -172,7 +172,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
           <button
             className="p-1 rounded-full border border-bbg hover:bg-bbg disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-            disabled={currentPage === totalPages}
+            disabled={currentPage === (totalPages ? totalPages : 1)}
           >
             <ChevronRight size={16} />
           </button>

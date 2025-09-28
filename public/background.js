@@ -556,8 +556,9 @@ async function initWebSocket() {
     socket.onopen = () => console.log("WebSocket connected");
     socket.onmessage = async (event) => {
         let data = JSON.parse(event.data);
-        let { settings = {} } = await browser.storage.local.get('settings')
-        let blacklistSenders = settings.Blacklist.senders
+
+        let { settings = {} } = await browser.storage.local.get('settings');
+        let blacklistSenders = settings.Blacklist.senders || [];
         if (blacklistSenders.includes(extractEmail(data?.from))) {
             return;
         }
@@ -565,10 +566,11 @@ async function initWebSocket() {
         const result = await browser.storage.local.get("savedMessages");
         const savedMessages = result.savedMessages || {};
 
-            const fetchedData = await fetchMessageData(data.id, data.mailbox)
-        const isSpam = await spamFilter(fetchedData.html, fetchedData.from, fetchedData.text, fetchedData.subject)
-        let counts = await browser.storage.local.get('emailCounts')
-        counts = counts.emailCounts || { [data.mailbox]: {} }
+        const fetchedData = await fetchMessageData(data.id, data.mailbox);
+        const isSpam = await spamFilter(fetchedData.html, fetchedData.from, fetchedData.text, fetchedData.subject);
+
+        let counts = await browser.storage.local.get('emailCounts');
+        counts = counts.emailCounts || { [data.mailbox]: {} };
         let countsP = counts[data.mailbox] || {
             Inbox: 0,
             Unread: 0,
@@ -577,43 +579,40 @@ async function initWebSocket() {
             Trash: 0,
             Read: 0,
             Unstarred: 0
-        }
+        };
 
-        countsP.Unread = (countsP?.Unread || 0) + 1;
+        // normalize folder
+        data = { ...data, folder: isSpam ? ['Spam', 'Unread'] : ['Inbox', 'Unread'] };
 
-        if (isSpam) {
-            countsP.Spam = (countsP?.Spam || 0) + 1;
-        } else {
-            countsP.Inbox = (countsP?.Inbox || 0) + 1;
-        }
-        await browser.storage.local.set({
-            emailCounts: {
-                ...counts,
-                [data.mailbox]: countsP
+        const existingIds = new Set(savedMessages[data.mailbox]?.data?.map(msg => msg.id) || []);
+
+        if (!existingIds.has(data.id)) {
+            countsP.Unread = (countsP.Unread || 0) + 1;
+            if (isSpam) {
+                countsP.Spam = (countsP.Spam || 0) + 1;
+            } else {
+                countsP.Inbox = (countsP.Inbox || 0) + 1;
             }
-        })
-        data = { ...data, folder: isSpam ? ['Spam', 'Unread'] : ['Inbox', 'Unread'] }
 
-        if (data.mailbox && savedMessages[data.mailbox]?.data) {
-            const existingIds = new Set(savedMessages[data.mailbox].data.map(msg => msg.id));
-            if (!existingIds.has(data.id)) {
+            if (savedMessages[data.mailbox]?.data) {
                 savedMessages[data.mailbox].data.push(data);
+            } else {
+                savedMessages[data.mailbox] = { data: [data], timestamp: Date.now() };
             }
-        } else if (data.mailbox) {
-            savedMessages[data.mailbox] = { data: [data], timestamp: Date.now() };
-        }
 
-        await showNotification(data);
+            await browser.storage.local.set({
+                emailCounts: { ...counts, [data.mailbox]: countsP },
+                savedMessages
+            });
 
-        await browser.storage.local.set({ savedMessages });
+            await showNotification(data);
+            browser.runtime.sendMessage({ type: "NEW_MESSAGE", data });
 
-        browser.runtime.sendMessage({ type: "NEW_MESSAGE", data });
-
-        const VEEnabled = settings?.Additional?.codeExtraction || false
-        if (VEEnabled) {
-            const otp = extractVCode(fetchedData.text)
-            if (otp) {
-                await browser.storage.local.set({ otp })
+            if (settings?.Additional?.codeExtraction) {
+                const otp = extractVCode(fetchedData.text);
+                if (otp) {
+                    await browser.storage.local.set({ otp });
+                }
             }
         }
     };
@@ -690,7 +689,7 @@ async function initExtension() {
                     btnbg: '#3b82f6',
                     bbg: '#374151'
                 },
-                active: 'light'
+                active: 'system'
             },
             customTheme: {
                 '3b12f1df-5232-4804-897e-917bf397618a': {

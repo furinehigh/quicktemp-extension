@@ -80,7 +80,7 @@ function App() {
                 browser.storage.local.set({ tempEmail: newEmail });
                 initWebSocket(newEmail);
               }}
-              className="p-1.5 w-full border border-bbg rounded-tl-md rounded-bl-md bg-bg text-fg"
+              className="outline-none focus:outline-none focus:ring-0 p-1.5 w-full border border-bbg rounded-tl-md rounded-bl-md bg-bg text-fg"
             />
             <select
               value={selectedDomain}

@@ -24,24 +24,6 @@ function Setting({ setTrigger }) {
     const [themeUpdateData, setThemeUpdateData] = useState({ id: '', data: undefined })
     const [bLEmail, setBLEmail] = useState('')
     const { addToast } = useToast()
-    const inputRef = useRef(null)
-
-    useEffect(() => {
-        const handleEnter = (e) => {
-            if (e.key == "Enter"){
-                handleAddBL()
-            }
-        }
-
-        const bLInput = inputRef.current
-        if (!bLInput) return;
-        
-        bLInput.addEventListener('keydown', handleEnter)
-
-        return () => {
-            bLInput.removeEventListener('keydown', handleEnter)
-        }
-    }, [])
 
     useEffect(() => {
         try {
@@ -210,6 +192,7 @@ function Setting({ setTrigger }) {
         if (saved) {
             setCurrChanges({})
             setSelectedNav(nav)
+            setError('')
         } else {
             handleShake()
         }
@@ -247,8 +230,10 @@ function Setting({ setTrigger }) {
         }
         if (senders.includes(bLEmail)) {
             addToast('Sender allready exists', 'error')
+            setError('')
             return;
         } else {
+            setError('')
             senders.push(bLEmail)
         }
 
@@ -363,7 +348,7 @@ function Setting({ setTrigger }) {
                         <div className=' p-2 h-full text-xs overflow-y-auto'>
                             {selectedNav == 'Spam' ? (
                                 <div className='flex flex-col space-y-2'>
-                                    <div className='border border-bbg space-y-2 p-2'>
+                                    <div className='border border-bbg rounded space-y-2 p-2'>
                                         <div>
                                             <h1 className='text-sm font-bold'>
                                                 Spam Filter
@@ -464,7 +449,7 @@ function Setting({ setTrigger }) {
                                 </div>
                             ) : selectedNav == 'Blacklist' ? (
                                 <div className='flex flex-col space-y-2'>
-                                    <div className='border border-bbg space-y-2 p-2'>
+                                    <div className='border border-bbg rounded space-y-2 p-2'>
                                         <div>
                                             <h1 className='text-sm font-bold'>
                                                 Blacklist senders
@@ -472,7 +457,12 @@ function Setting({ setTrigger }) {
                                             <p className='text-gray-500'>Add all the senders you don't want to recieve emails from</p>
                                         </div>
                                         <div className='flex justify-center space-x-2'>
-                                            <input ref={inputRef} placeholder='pls@blacklist.me' name='senders' value={bLEmail} onChange={(e) => { setBLEmail(e.target.value) }} className='w-full max-h-[180px] border border-bbg rounded bg-bg text-fg bg-opacity-70 p-1' />
+                                            <input onKeyDown={(e) => {
+                                                if (e.key === "Enter") {
+                                                    e.preventDefault()
+                                                    handleAddBL()
+                                                }
+                                            }} placeholder='pls@blacklist.me' name='senders' value={bLEmail} onChange={(e) => { setBLEmail(e.target.value) }} className='outline-none focus:outline-none focus:ring-0 w-full max-h-[180px] border border-bbg rounded bg-bg text-fg bg-opacity-70 p-1' />
                                             <button onClick={handleAddBL} className='border rounded border-bbg bg-btnbg text-fg px-1 py-0.5'>Add</button>
                                         </div>
                                         {error && <p className='text-red-400'>{error}</p>}
@@ -480,9 +470,9 @@ function Setting({ setTrigger }) {
                                     {(settings[selectedNav]?.senders.length == 0 || settings[selectedNav] == undefined) && <p className='text-center w-full'>No sender is blacklisted yet.</p>}
                                     <div className='space-y-2'>
                                         {(settings[selectedNav]?.senders || []).map((e, i) => (
-                                            <div className='px-1 py-0.5 border border-bbg bg-bg rounded flex justify-between items-center'>
+                                            <div className='px-2 py-1 border border-bbg bg-bg rounded flex justify-between items-center'>
                                                 <p className='text-opacity-70'>{e}</p>
-                                                <button onClick={() => removeBLSender(e)} className='rounded border border-bbg p-1'>
+                                                <button onClick={() => removeBLSender(e)} className=''>
                                                     <X size={12} />
                                                 </button>
                                             </div>
