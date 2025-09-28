@@ -66,7 +66,7 @@ function App() {
   return (
     <div className="p-4 font-sans w-[400px] h-[550px] bg-bg text-fg">
       <ToastProvider>
-        <Header setTrigger={(d) => setTrigger(d)} />
+        <Header setTrigger={(d) => setTrigger(d)} mailbox={email} onSelectEmail={setSelectedEmail} />
         <div className="flex flex-row justify-between space-x-1 items-center">
           <div className="flex flex-row items-center w-full">
             <input

@@ -50,11 +50,10 @@ You have successfully added the extenion to your Firefox browser for testing.
 - Custom Spam filter so that u have full control over ur incomming emails
 - Best n most advanced UI with crazy customizations (this will be my USP :)
 - Auto email suggestions on opened pages' email inputs
+- Auto extraction of verification codes from your email - No AI and codes r extracted in client side only
+- Search through your emails
 
 # Upcomming featuers
-- Search through your emails
-- Auto deletion of emails
-- Auto extraction of verification codes from your email - No AI n everything is internal
 
 # Permissions needed for this extension
 - Storage (it will store your garbage in your 'Trash')

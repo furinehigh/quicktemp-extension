@@ -106,7 +106,7 @@ export default function EmailView({ email, onClose }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-[1001]"
         >
             <div className="bg-bg rounded border border-bbg p-3 w-full h-[400px] flex flex-col">
                 {/* Header */}
