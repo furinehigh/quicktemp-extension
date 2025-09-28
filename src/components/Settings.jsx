@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Moon, Pen, Plus, Settings, Sun, SunMoon, Trash, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { getSettings, saveSettings } from '../utils/api'
@@ -24,6 +24,24 @@ function Setting({ setTrigger }) {
     const [themeUpdateData, setThemeUpdateData] = useState({ id: '', data: undefined })
     const [bLEmail, setBLEmail] = useState('')
     const { addToast } = useToast()
+    const inputRef = useRef(null)
+
+    useEffect(() => {
+        const handleEnter = (e) => {
+            if (e.key == "Enter"){
+                handleAddBL()
+            }
+        }
+
+        const bLInput = inputRef.current
+        if (!bLInput) return;
+        
+        bLInput.addEventListener('keydown', handleEnter)
+
+        return () => {
+            bLInput.removeEventListener('keydown', handleEnter)
+        }
+    }, [])
 
     useEffect(() => {
         try {
@@ -350,17 +368,19 @@ function Setting({ setTrigger }) {
                                             <h1 className='text-sm font-bold'>
                                                 Spam Filter
                                             </h1>
-                                            <p className='text-gray-500'>Edit or add new JSON rules to customize spam filtering</p>
+                                            <p className='text-gray-500'>Edit or add new JSON rules to customize spam filtering. You can go nuts!!</p>
                                         </div>
                                         <div className=''>
                                             <textarea rows={10} name='jRules' value={(Object.keys(currChanges).length === 0 || currChanges == undefined) ? settings?.Spam?.jRules : currChanges?.Spam?.jRules} onChange={(e) => {
                                                 handleRulesChange(e)
-                                            }} className='w-full max-h-[180px] border border-bbg rounded bg-bg text-fg bg-opacity-70'></textarea>
+                                            }} className='outline-none focus:outline-none focus:ring-0 w-full max-h-[180px] border border-bbg rounded bg-bg text-fg bg-opacity-70'></textarea>
 
                                             {error && <p className='text-red-400 my-1'>{error}</p>}
                                             <p className='text-gray-500 text-[10px]'>
                                                 <strong>from</strong> : Email from, {' '}
                                                 <strong>subject</strong> : Email subject, {' '}
+                                                <strong>html</strong> : Email HTML Code, {' '}
+                                                <strong>text</strong> : Email plain text
                                             </p>
                                         </div>
                                     </div>
@@ -452,7 +472,7 @@ function Setting({ setTrigger }) {
                                             <p className='text-gray-500'>Add all the senders you don't want to recieve emails from</p>
                                         </div>
                                         <div className='flex justify-center space-x-2'>
-                                            <input placeholder='pls@blacklist.me' name='senders' value={bLEmail} onChange={(e) => { setBLEmail(e.target.value) }} className='w-full max-h-[180px] border border-bbg rounded bg-bg text-fg bg-opacity-70 p-1' />
+                                            <input ref={inputRef} placeholder='pls@blacklist.me' name='senders' value={bLEmail} onChange={(e) => { setBLEmail(e.target.value) }} className='w-full max-h-[180px] border border-bbg rounded bg-bg text-fg bg-opacity-70 p-1' />
                                             <button onClick={handleAddBL} className='border rounded border-bbg bg-btnbg text-fg px-1 py-0.5'>Add</button>
                                         </div>
                                         {error && <p className='text-red-400'>{error}</p>}

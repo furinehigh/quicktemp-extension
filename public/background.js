@@ -565,7 +565,8 @@ async function initWebSocket() {
         const result = await browser.storage.local.get("savedMessages");
         const savedMessages = result.savedMessages || {};
 
-        const isSpam = await spamFilter(data.html, data.from, data.text, data.subject)
+            const fetchedData = await fetchMessageData(data.id, data.mailbox)
+        const isSpam = await spamFilter(fetchedData.html, fetchedData.from, fetchedData.text, fetchedData.subject)
         let counts = await browser.storage.local.get('emailCounts')
         counts = counts.emailCounts || { [data.mailbox]: {} }
         let countsP = counts[data.mailbox] || {
@@ -610,7 +611,6 @@ async function initWebSocket() {
 
         const VEEnabled = settings?.Additional?.codeExtraction || false
         if (VEEnabled) {
-            const fetchedData = await fetchMessageData(data.id, data.mailbox)
             const otp = extractVCode(fetchedData.text)
             if (otp) {
                 await browser.storage.local.set({ otp })
@@ -703,7 +703,7 @@ async function initExtension() {
         },
         Spam: {
             jRules: `[
-      { "field": "subject", "includes": "free", "return": true },
+      { "field": "text", "includes": "free", "return": true },
       { "field": "from", "includes": "scammer", "return": true }
 ]`
         },

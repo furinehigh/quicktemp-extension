@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "QuickTemp - Highly customizable temp mail UI",
-  "version": "1.0",
+  "version": "2.0",
   "description": "An advanced disposalbe email UI for pros",
   "browser_action": {
     "default_popup": "index.html"
