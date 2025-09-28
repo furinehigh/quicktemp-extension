@@ -490,16 +490,19 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true
     }
 
-    if (message.action === 'getOtpSuggestion') {
+    if (message.action === "getOtpSuggestion") {
         (async () => {
-            const { settings = {} } = await browser.storage.local.get('settings')
-            const { otp = '' } = await browser.storage.local.get('otp')
-            if (settings.Additional.codeExtraction) {
-                sendResponse({ otp })
+            const { settings = {} } = await browser.storage.local.get("settings");
+            const { otp = "" } = await browser.storage.local.get("otp");
+            if (settings.Additional?.codeExtraction && otp) {
+                sendResponse({ otp });
+            } else {
+                sendResponse({});
             }
         })();
-        return true
+        return true;
     }
+
 
     if (message.action === `genRandomEmail`) {
         (async () => {
@@ -725,8 +728,8 @@ initExtension()
 // a crazy func to extract otps from email's text
 function extractVCode(text, opts = {}) {
     opts = {
-        minLen: 4,
-        maxLen: 12,
+        minDigits: 4,
+        maxDigits: 8,
         keywords: ['otp', 'verification', 'verify', 'code', 'passcode', 'pin', 'auth', 'security'],
         stopWords: [
             'please', 'your', 'this', 'that', 'thank', 'thanks', 'hello', 'dear', 'kindly',
@@ -736,6 +739,7 @@ function extractVCode(text, opts = {}) {
     };
 
     if (!text || typeof text !== 'string') return false;
+
     const lower = text.toLowerCase();
 
     // check if text even looks like a verification mail
@@ -757,40 +761,30 @@ function extractVCode(text, opts = {}) {
         entry.reasons.push(reason);
     };
 
-    // generic token matcher
-    const tokenRegex = new RegExp(`\\b[a-zA-Z0-9]{${opts.minLen},${opts.maxLen}}\\b`, 'g');
+    // numeric OTPs
+    const numRegex = new RegExp(`\\b\\d{${opts.minDigits},${opts.maxDigits}}\\b`, 'g');
     let m;
-    while ((m = tokenRegex.exec(text))) {
-        pushCandidate(m[0], 20, 'candidate');
+    while ((m = numRegex.exec(text))) {
+        pushCandidate(m[0], 50, 'numeric candidate');
     }
 
-    // scoring
+    // alphanumeric tokens
+    const alphaNumRegex = /\b[A-Za-z0-9]{6,12}\b/g;
+    while ((m = alphaNumRegex.exec(text))) {
+        pushCandidate(m[0], 30, 'alphanumeric candidate');
+    }
+
+    // add context scoring
     for (const entry of candidates.values()) {
         const ltok = entry.token.toLowerCase();
 
-        // ignore common English words
+        // ignore stop words
         if (opts.stopWords.includes(ltok)) {
             entry.score = 0;
             continue;
         }
 
-        // boost numeric only OTPs
-        if (/^[0-9]+$/.test(entry.token)) {
-            entry.score += 30;
-            if (entry.token.length === 6) entry.score += 20; // classic 6-digit otp
-        }
-
-        // boost alphanumeric (like Amazon codes)
-        if (/^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9]+$/.test(entry.token)) {
-            entry.score += 25;
-        }
-
-        // boost pure alpha (short  tokens)
-        if (/^[A-Za-z]+$/.test(entry.token) && entry.token.length >= 5) {
-            entry.score += 15;
-        }
-
-        // boost if token is close to a keyword
+        // boost if token appears near keyword
         for (const kw of opts.keywords) {
             const idx = lower.indexOf(kw);
             if (idx !== -1) {
@@ -798,16 +792,21 @@ function extractVCode(text, opts = {}) {
                 if (distance < 50) entry.score += 40;
             }
         }
+
+        // common 6-digit otp boost
+        if (/^\d{6}$/.test(entry.token)) entry.score += 20;
     }
 
-    // pick best
+    // filter out zero or negative scores
     const list = Array.from(candidates.values())
         .filter(e => e.score > 0)
         .sort((a, b) => b.score - a.score);
 
+    // if best candidate is just a word or nothing, return false
     const best = list[0];
     if (!best) return false;
-    if (best.score < 40) return false; // too weak like u
+    if (!/\d/.test(best.token)) return false;
+    if (best.score < 50) return false;        // less confidence like u :)
 
     return best.token;
 }
