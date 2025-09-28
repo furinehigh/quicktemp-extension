@@ -61,6 +61,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
   }, [mailbox, emails])
 
   const DeleteDialog = ({ emailId, onClose }) => {
+    if (!showDeleteDialog) return;
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -199,10 +200,9 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
               transition={{ duration: 0.2 }}
               className="group email-item border border-bbg rounded-lg p-3 shadow-sm cursor-pointer hover:bg-bbg overflow-hidden relative"
               onClick={() => {
-                if (email.folder.includes('Unread'))
-                  {
-                    handleFolderChange(mailbox, email.id, 'Read')
-                  } 
+                if (email.folder.includes('Unread')) {
+                  handleFolderChange(mailbox, email.id, 'Read')
+                }
                 onSelectEmail(email)
               }}
             >
@@ -259,9 +259,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
           ))}
         </motion.div>
       </AnimatePresence>
-      {showDeleteDialog && (
-        <DeleteDialog emailId={dltEmailId} onClose={() => setShowDeleteDialog(false)} />
-      )}
+      <DeleteDialog emailId={dltEmailId} onClose={() => setShowDeleteDialog(false)} />
     </div>
   );
 });

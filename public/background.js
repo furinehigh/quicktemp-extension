@@ -222,7 +222,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 if (!res.ok) throw new Error(`API Error: ${res.status}`);
 
                 const updatedMailbox = mailboxData.filter((msg) => msg.id !== message.id);
-                const folders = mailboxData.find(m => m.id === message.id)[0].folder
+                const folders = mailboxData.find(m => m.id === message.id).folder
 
                 await browser.storage.local.set({
                     savedMessages: {

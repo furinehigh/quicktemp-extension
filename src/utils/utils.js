@@ -7,7 +7,8 @@ function capitalizeFirst(str) {
 
 const checkJSONValidity = (json) => {
   try {
-    return JSON.parse(json)
+    JSON.parse(json)
+    return true
   } catch (e) {
     return e.message
   }

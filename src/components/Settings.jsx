@@ -75,11 +75,16 @@ function Setting({ setTrigger }) {
     }, [currChanges])
 
 
-    const handleFieldChange = (e) => {
-        const field = e.target.name
+    const handleRulesChange = (e) => {
+        const parsed = checkJSONValidity(e.target.value)
+        if (parsed === true) {
+            setError('')
+        } else {
+            setError(parsed)
+        }
         let settingChanges = {
             [selectedNav]: {
-                [field]: e.target.value
+                jRules: e.target.value
             }
         }
         if (isEqual(settingChanges, { [selectedNav]: settings[selectedNav] })) {
@@ -179,6 +184,7 @@ function Setting({ setTrigger }) {
 
     const handleDiscardChanges = () => {
         setCurrChanges({})
+        setError('')
         setSaved(true)
     }
 
@@ -348,16 +354,10 @@ function Setting({ setTrigger }) {
                                         </div>
                                         <div className=''>
                                             <textarea rows={10} name='jRules' value={(Object.keys(currChanges).length === 0 || currChanges == undefined) ? settings?.Spam?.jRules : currChanges?.Spam?.jRules} onChange={(e) => {
-                                                const v = checkJSONValidity(e.target.value)
-                                                if (v) {
-                                                    setError('')
-                                                    handleFieldChange(e)
-                                                } else {
-                                                    setError(v)
-                                                }
+                                                handleRulesChange(e)
                                             }} className='w-full max-h-[180px] border border-bbg rounded bg-bg text-fg bg-opacity-70'></textarea>
 
-                                            {error && <p className='text-red-400'>{error}</p>}
+                                            {error && <p className='text-red-400 my-1'>{error}</p>}
                                             <p className='text-gray-500 text-[10px]'>
                                                 <strong>from</strong> : Email from, {' '}
                                                 <strong>subject</strong> : Email subject, {' '}
@@ -518,7 +518,7 @@ function Setting({ setTrigger }) {
                                     <div>Unsaved changes</div>
                                     <div className='flex space-x-2 '>
                                         <button onClick={handleDiscardChanges} className='border rounded border-bbg py-1 px-2'>Discard</button>
-                                        <button onClick={handleChangesSaved} className='border rounded bg-btnbg text-fg py-1 px-2'>Save</button>
+                                        <button onClick={handleChangesSaved} disabled={error !== ''} className='border rounded bg-btnbg text-fg py-1 px-2 disabled:opacity-50'>Save</button>
                                     </div>
                                 </motion.div>
                             }
