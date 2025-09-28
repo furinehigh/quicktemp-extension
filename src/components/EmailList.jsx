@@ -198,7 +198,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
-              className="group email-item border border-bbg rounded-lg p-3 shadow-sm cursor-pointer hover:bg-bbg overflow-hidden relative"
+              className="group email-item border border-bbg rounded-lg p-3 shadow-sm cursor-pointer hover:bg-bbg overflow-hidden transition-colors duration-200 relative"
               onClick={() => {
                 if (email.folder.includes('Unread')) {
                   handleFolderChange(mailbox, email.id, 'Read')
@@ -223,7 +223,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
               <motion.div
                 className="flex justify-end "
               >
-                <button className="absolute bottom-3 right-[-15px] group-hover:right-3 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
+                <button className="absolute bottom-3 right-[-15px] group-hover:-translate-x-7 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
                   e.stopPropagation();
                   if ((email?.folder || []).includes('Trash')) {
                     setShowDeleteDialog(true);
@@ -234,7 +234,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
                 }}>
                   <Trash size={12} className="text-gray-400 hover:text-red-500 transition duration-300" />
                 </button>
-                <button className="absolute bottom-3 right-[-15px] group-hover:right-7 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
+                <button className={`absolute bottom-3 right-3 group-hover:-translate-x-8 ${(email?.folder || []).includes('Starred') ? 'opacity-100' : 'opacity-0'}  group-hover:opacity-100 transition-transform duration-200 mt-2 text-xs`} onClick={(e) => {
                   e.stopPropagation();
                   if ((email?.folder || []).includes('Starred')) {
                     handleFolderChange(mailbox, email.id, 'Unstarred')
@@ -244,7 +244,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
                 }}>
                   <Star size={12} className={`text-gray-400 hover:text-yellow-400 transition duration-300 ${(email?.folder || []).includes('Starred') ? 'fill-yellow-400 text-yellow-400' : ''}`} />
                 </button>
-                <button className="absolute bottom-3 right-[-15px] group-hover:right-11 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
+                <button className="absolute bottom-3 right-[-15px] group-hover:-translate-x-11 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
                   e.stopPropagation();
                   if ((email?.folder || []).includes('Spam')) {
                     handleFolderChange(mailbox, email.id, 'Inbox')

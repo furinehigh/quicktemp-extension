@@ -124,26 +124,32 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 let blacklistSenders = settings.senders
 
                 const data = await res.json();
-                const { savedMessages } = await browser.storage.local.get("savedMessages") || { savedMessages: {} };
-                if (savedMessages?.[message.address]?.data) {
-                    const existingIds = new Set(savedMessages[message.address].data.map(msg => msg.id));
-                    data.data = [...savedMessages[message.address].data, ...data.data.filter(msg => !existingIds.has(msg.id))];
-                }
-                // filtering out emails from blacklisted senders
-                data.data = data.data.filter(d => !blacklistSenders.includes(extractEmail(d.from)))
-                browser.storage.local.set({
+                const { savedMessages = {} } = await browser.storage.local.get("savedMessages");
+
+                const existingMailboxData = savedMessages[message.address]?.data || [];
+                const existingIds = new Set(existingMailboxData.map(msg => msg.id));
+                const newMessages = data.data.filter(msg => !existingIds.has(msg.id));
+
+                const combinedData = [...existingMailboxData, ...newMessages];
+
+                const filteredData = combinedData.filter(d => !blacklistSenders.includes(extractEmail(d.from)));
+
+                await browser.storage.local.set({
                     savedMessages: {
+                        ...savedMessages,
                         [message.address]: {
-                            data: data.data.map((e) => ({
+                            data: filteredData.map((e) => ({
                                 ...e,
                                 folder: (e?.folder || []).length !== 0 ? e?.folder : ['Inbox', 'Unread']
-                            })), timestamp: Date.now()
+                            })),
+                            timestamp: Date.now()
                         }
                     }
                 });
 
-                const reqData = data.data.filter((m) => (m?.folder || []).includes(message.folder))
-                if (data.data.length) {
+                const reqData = filteredData.filter((m) => (m?.folder || []).includes(message.folder))
+
+                if (filteredData.length) {
                     let { emailCounts = {} } = await browser.storage.local.get("emailCounts");
 
                     const existingCounts = emailCounts[message.address] || {};
@@ -151,7 +157,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     const updatedCounts = Object.fromEntries(
                         Object.keys(existingCounts).map((k) => [
                             k,
-                            data.data.filter((e) => e.folder.includes(k)).length,
+                            filteredData.filter((e) => e.folder.includes(k)).length,
                         ])
                     );
 
