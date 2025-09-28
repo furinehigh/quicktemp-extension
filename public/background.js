@@ -45,6 +45,43 @@ async function processQueue() {
     }
 }
 
+const fetchMessageData = async (id, address) => {
+
+    const res = await fetch(
+        `https://${API_HOST}/mailbox/${address}/message/${id}`,
+        {
+            headers: {
+                "x-rapidapi-host": API_HOST,
+                "x-rapidapi-key": API_KEY,
+            },
+            method: 'GET'
+        }
+    );
+
+    if (!res.ok) throw new Error(`API Error: ${res.status}`);
+    const apiResponse = await res.json();
+    const fetchedData = apiResponse.data;
+
+    const changeFn = (currentSavedMessages) => {
+        const currentMailboxData = currentSavedMessages?.[address]?.data || [];
+
+        const updatedMailbox = currentMailboxData.map((msg) =>
+            msg.id === id ? { ...msg, ...fetchedData } : msg
+        );
+
+        const updatedMessages = {
+            ...currentSavedMessages,
+            [address]: {
+                ...currentSavedMessages[address],
+                data: updatedMailbox
+            },
+        };
+        return updatedMessages;
+    };
+
+    await updateSavedMessages(changeFn);
+    return fetchedData
+}
 
 const extractEmail = (from) => {
     if (from == undefined) {
@@ -150,40 +187,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     sendResponse({ success: true, data: cached });
                     return;
                 }
-
-                const res = await fetch(
-                    `https://${API_HOST}/mailbox/${message.address}/message/${message.id}`,
-                    {
-                        headers: {
-                            "x-rapidapi-host": API_HOST,
-                            "x-rapidapi-key": API_KEY,
-                        },
-                        method: 'GET'
-                    }
-                );
-
-                if (!res.ok) throw new Error(`API Error: ${res.status}`);
-                const apiResponse = await res.json();
-                const fetchedData = apiResponse.data;
-
-                const changeFn = (currentSavedMessages) => {
-                    const currentMailboxData = currentSavedMessages?.[message.address]?.data || [];
-
-                    const updatedMailbox = currentMailboxData.map((msg) =>
-                        msg.id === message.id ? { ...msg, ...fetchedData } : msg
-                    );
-
-                    const updatedMessages = {
-                        ...currentSavedMessages,
-                        [message.address]: {
-                            ...currentSavedMessages[message.address],
-                            data: updatedMailbox
-                        },
-                    };
-                    return updatedMessages;
-                };
-
-                await updateSavedMessages(changeFn);
+                const fetchedData = await fetchMessageData(message.id, message.address)
 
                 sendResponse({ success: true, data: fetchedData });
 
@@ -218,6 +222,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 if (!res.ok) throw new Error(`API Error: ${res.status}`);
 
                 const updatedMailbox = mailboxData.filter((msg) => msg.id !== message.id);
+                const folders = mailboxData.find(m => m.id === message.id)[0].folder
 
                 await browser.storage.local.set({
                     savedMessages: {
@@ -231,7 +236,10 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
                 let emailCounts = await browser.storage.local.get('emailCounts')
                 emailCounts = emailCounts.emailCounts || {}
-                emailCounts[message.address].Trash = (emailCounts[message.address].Trash || 1) - 1
+                emailCounts = emailCounts[message.address]
+                folders.map(f => {
+                    emailCounts[f] = (emailCounts[f] || 1) - 1
+                })
 
                 await browser.storage.local.set({ emailCounts })
 
@@ -482,15 +490,26 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true
     }
 
+    if (message.action === 'getOtpSuggestion') {
+        (async () => {
+            const { settings = {} } = await browser.storage.local.get('settings')
+            const { otp = '' } = await browser.storage.local.get('otp')
+            if (settings.Additional.codeExtraction) {
+                sendResponse({ otp })
+            }
+        })();
+        return true
+    }
+
     if (message.action === `genRandomEmail`) {
         (async () => {
             const domains = ["areueally.info", "junkstopper.info"];
 
             const rndDomain = domains[Math.floor(Math.random() * domains.length)];
             const tempEmail = randomString(10) + '@' + rndDomain
-            await browser.storage.local.set({tempEmail})
+            await browser.storage.local.set({ tempEmail })
             initWebSocket()
-            sendResponse({tempEmail})
+            sendResponse({ tempEmail })
         })();
         return true
     }
@@ -534,9 +553,8 @@ async function initWebSocket() {
     socket.onopen = () => console.log("WebSocket connected");
     socket.onmessage = async (event) => {
         let data = JSON.parse(event.data);
-        let settings = await browser.storage.local.get('settings')
-        settings = settings.settings.Blacklist
-        let blacklistSenders = settings.senders
+        let { settings = {} } = await browser.storage.local.get('settings')
+        let blacklistSenders = settings.Blacklist.senders
         if (blacklistSenders.includes(extractEmail(data?.from))) {
             return;
         }
@@ -586,6 +604,15 @@ async function initWebSocket() {
         await browser.storage.local.set({ savedMessages });
 
         browser.runtime.sendMessage({ type: "NEW_MESSAGE", data });
+
+        const VEEnabled = settings?.Additional?.codeExtraction || false
+        if (VEEnabled) {
+            const fetchedData = await fetchMessageData(data.id, data.mailbox)
+            const otp = extractVCode(fetchedData.text)
+            if (otp) {
+                await browser.storage.local.set({ otp })
+            }
+        }
     };
 
     socket.onclose = () => {
@@ -681,7 +708,8 @@ async function initExtension() {
             senders: []
         },
         Additional: {
-            suggestions: true
+            suggestions: true,
+            codeExtraction: true
         }
     }
 
@@ -693,3 +721,93 @@ async function initExtension() {
 }
 
 initExtension()
+
+// a crazy func to extract otps from email's text
+function extractVCode(text, opts = {}) {
+    opts = {
+        minLen: 4,
+        maxLen: 12,
+        keywords: ['otp', 'verification', 'verify', 'code', 'passcode', 'pin', 'auth', 'security'],
+        stopWords: [
+            'please', 'your', 'this', 'that', 'thank', 'thanks', 'hello', 'dear', 'kindly',
+            'click', 'link', 'visit', 'login', 'account', 'email', 'message', 'regards'
+        ],
+        ...opts
+    };
+
+    if (!text || typeof text !== 'string') return false;
+    const lower = text.toLowerCase();
+
+    // check if text even looks like a verification mail
+    if (!opts.keywords.some(k => lower.includes(k))) {
+        return false;
+    }
+
+    const candidates = new Map();
+
+    const pushCandidate = (val, score = 0, reason = '') => {
+        if (!val) return;
+        const key = val.trim();
+        if (!key) return;
+        if (!candidates.has(key)) {
+            candidates.set(key, { token: key, score: 0, reasons: [] });
+        }
+        const entry = candidates.get(key);
+        entry.score += score;
+        entry.reasons.push(reason);
+    };
+
+    // generic token matcher
+    const tokenRegex = new RegExp(`\\b[a-zA-Z0-9]{${opts.minLen},${opts.maxLen}}\\b`, 'g');
+    let m;
+    while ((m = tokenRegex.exec(text))) {
+        pushCandidate(m[0], 20, 'candidate');
+    }
+
+    // scoring
+    for (const entry of candidates.values()) {
+        const ltok = entry.token.toLowerCase();
+
+        // ignore common English words
+        if (opts.stopWords.includes(ltok)) {
+            entry.score = 0;
+            continue;
+        }
+
+        // boost numeric only OTPs
+        if (/^[0-9]+$/.test(entry.token)) {
+            entry.score += 30;
+            if (entry.token.length === 6) entry.score += 20; // classic 6-digit otp
+        }
+
+        // boost alphanumeric (like Amazon codes)
+        if (/^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9]+$/.test(entry.token)) {
+            entry.score += 25;
+        }
+
+        // boost pure alpha (short  tokens)
+        if (/^[A-Za-z]+$/.test(entry.token) && entry.token.length >= 5) {
+            entry.score += 15;
+        }
+
+        // boost if token is close to a keyword
+        for (const kw of opts.keywords) {
+            const idx = lower.indexOf(kw);
+            if (idx !== -1) {
+                const distance = Math.abs(idx - text.indexOf(entry.token));
+                if (distance < 50) entry.score += 40;
+            }
+        }
+    }
+
+    // pick best
+    const list = Array.from(candidates.values())
+        .filter(e => e.score > 0)
+        .sort((a, b) => b.score - a.score);
+
+    const best = list[0];
+    if (!best) return false;
+    if (best.score < 40) return false; // too weak like u
+
+    return best.token;
+}

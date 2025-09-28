@@ -82,13 +82,13 @@ function Setting({ setTrigger }) {
                 [field]: e.target.value
             }
         }
-        if (isEqual(settingChanges, { [selectedNav]: { ...settings[selectedNav] } })) {
+        if (isEqual(settingChanges, { [selectedNav]: settings[selectedNav] })) {
             setSaved(true)
             setCurrChanges({})
         } else {
             setSaved(false)
+            setCurrChanges(settingChanges)
         }
-        setCurrChanges(settingChanges)
     }
 
     const handleThemeChange = (name, custom = undefined) => {
@@ -145,11 +145,18 @@ function Setting({ setTrigger }) {
                 active: name
             }
         }
-        setCurrChanges((prev) => ({
-            ...prev,
-            Layout
-        }))
-        setSaved(false)
+
+        if (isEqual(Layout, settings.Layout)) {
+            setSaved(true)
+            setCurrChanges({})
+        } else {
+
+            setCurrChanges((prev) => ({
+                ...prev,
+                Layout
+            }))
+            setSaved(false)
+        }
     }
 
     const handleChangesSaved = async () => {
@@ -256,14 +263,37 @@ function Setting({ setTrigger }) {
     // additional stuffs
     const handleChangeSugg = (value) => {
         let Additional = {
-            ...settings.Additioanl,
+            ...settings.Additional,
             suggestions: value
         }
-        setCurrChanges((prev) => ({
-            ...prev,
-            Additional
-        }))
-        setSaved(false)
+        if (isEqual(Additional, settings.Additional)) {
+            setSaved(true)
+            setCurrChanges({})
+        } else {
+
+            setCurrChanges((prev) => ({
+                ...prev,
+                Additional
+            }))
+            setSaved(false)
+        }
+    }
+    const handleChangeCExt = (value) => {
+        let Additional = {
+            ...settings.Additional,
+            codeExtraction: value
+        }
+        if (isEqual(Additional, settings.Additional)) {
+            setSaved(true)
+            setCurrChanges({})
+        } else {
+
+            setCurrChanges((prev) => ({
+                ...prev,
+                Additional
+            }))
+            setSaved(false)
+        }
     }
 
     const navTabs = [
@@ -444,14 +474,30 @@ function Setting({ setTrigger }) {
                                     <div className='border rounded border-bbg p-2'>
                                         <div className='flex justify-between items-center'>
                                             <div className=''>
-                                                <h1 className='text-sm font-bold'>Suggestions</h1>
-                                                <p className='text-gray-500'>Do you want your temp email to be shown below email fields</p>
+                                                <h1 className='text-sm font-bold'>Email Suggestions</h1>
+                                                <p className='text-gray-500'>Do you want your temp email to be shown below email fields?</p>
                                             </div>
                                             <div className='border rounded border-bbg flex items-center'>
                                                 <button onClick={() => handleChangeSugg(true)} className={`${(Object.keys(currChanges?.Additional || {}).length !== 0 ? currChanges?.Additional?.suggestions == true : settings?.Additional?.suggestions == true) ? 'bg-bbg' : ''} border-r border-r-bbg p-1`}>
                                                     Yes
                                                 </button>
                                                 <button onClick={() => handleChangeSugg(false)} className={`${(Object.keys(currChanges?.Additional || {}).length !== 0 ? currChanges?.Additional?.suggestions == false : settings?.Additional?.suggestions == false) ? 'bg-bbg' : ''} border-r border-r-bbg p-1`}>
+                                                    No
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='border rounded border-bbg p-2'>
+                                        <div className='flex justify-between items-center'>
+                                            <div className=''>
+                                                <h1 className='text-sm font-bold'>OTP Extraction</h1>
+                                                <p className='text-gray-500'>Do you want auto extraction of your verification codes form your emails?</p>
+                                            </div>
+                                            <div className='border rounded border-bbg flex items-center'>
+                                                <button onClick={() => handleChangeCExt(true)} className={`${(Object.keys(currChanges?.Additional || {}).length !== 0 ? currChanges?.Additional?.codeExtraction == true : settings?.Additional?.codeExtraction == true) ? 'bg-bbg' : ''} border-r border-r-bbg p-1`}>
+                                                    Yes
+                                                </button>
+                                                <button onClick={() => handleChangeCExt(false)} className={`${(Object.keys(currChanges?.Additional || {}).length !== 0 ? currChanges?.Additional?.codeExtraction == false : settings?.Additional?.codeExtraction == false) ? 'bg-bbg' : ''} border-r border-r-bbg p-1`}>
                                                     No
                                                 </button>
                                             </div>

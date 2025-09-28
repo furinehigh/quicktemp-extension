@@ -19,11 +19,13 @@ const detectEmailInputs = () => {
 
     inputs.forEach(i => emailInputs.add(i))
 }
-detectEmailInputs();
+detectEmailInputs()
+detectOtpInputs()
 
 // dinamically added ones too
 const observer = new MutationObserver(() => {
     detectEmailInputs();
+    detectOtpInputs()
 });
 observer.observe(document.body, { childList: true, subtree: true });
 
@@ -68,17 +70,17 @@ white-space: nowrap;
         item.style.padding = '4px 8px'
         item.style.cursor = 'pointer'
         item.style.borderBottom = '1px solid #ccc'
-        
-        
+
+
         item.addEventListener('mousedown', () => {
             input.value = s
             input.dispatchEvent(new Event("input", { bubbles: true }))
             removeEmailDropdown()
         })
-        
+
         box.appendChild(item)
     })
-    
+
     const genEmail = document.createElement('div')
     const about = document.createElement('div')
     genEmail.style.borderBottom = '1px solid #ccc'
@@ -90,7 +92,7 @@ white-space: nowrap;
         </div>
         `
 
-    about.innerText = 'You can turn the suggestions off from the extensions "Additional" settings. By QuickTime'
+    about.innerText = 'You can turn these suggestions off from the extension&#39;s "Additional" settings. By QuickTime'
     about.style.fontSize = '8px'
 
     genEmail.addEventListener('mousedown', async () => {
@@ -130,148 +132,109 @@ const getRandomEmail = async () => {
     }
 }
 
-const extractVCode = (html, opts = {}) => {
-    opts = {
-        minDigits: 4,
-        maxDigits: 8,
-        minAlphaNum: 6,
-        maxAlphaNum: 12,
-        keywords: ['otp', 'one-time', 'one time', 'verification', 'verify', 'code', 'passcode', 'pin', 'security code', 'auth code', 'authentication'],
-        windowChars: 80,
-        ...opts,
 
+
+// verification and otp stuffs
+let otpInputs;
+const detectOtpInputs = () => {
+    const selectors = [
+        'input[autocomplete="one-time-code"]',
+        'input[name*="otp" i]',
+        'input[id*="otp" i]',
+        'input[placeholder*="otp" i]',
+        'input[name*="code" i]',
+        'input[id*="code" i]',
+        'input[placeholder*="code" i]',
+        'input[name*="verify" i]',
+        'input[id*="verify" i]',
+        'input[placeholder*="verify" i]',
+        'input[name*="pin" i]',
+        'input[id*="pin" i]',
+        'input[placeholder*="pin" i]'
+    ]
+
+    const inputs = selectors.map(s => [...document.querySelectorAll(s)]).flat()
+
+    otpInputs = Array.from(new Set(inputs))
+
+}
+
+
+const removeOtpDropdown = () => {
+    const oldBox = document.getElementById("qt-otp")
+    if (oldBox) oldBox.remove()
+}
+
+const showOtpDropdown = (input, otp) => {
+    removeOtpDropdown();
+
+    if (!otp) return;
+    const box = document.createElement("div")
+    const style = window.getComputedStyle(input)
+
+    const isDark = window.matchMedia('(prefer-color-scheme: dark)').matches
+    box.id = 'qt-otp'
+    box.style.position = "absolute"
+    if (isDark) {
+        box.style.background = '#000'
+        box.style.color = '#fff'
+        box.style.border = '1px solid #fff'
+    } else {
+        box.style.background = '#fff'
+        box.style.color = '#000'
+        box.style.border = '1px solid #000'
     }
+    box.style.fontFamily = 'sans-serif'
+    box.style.fontSize = '15px'
+    box.style.zIndex = 2147483647 // the largest i could put 😏
 
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(html || '', 'text/html')
-    const text = (doc.body && doc.body.innerText) ? doc.body.innerText.replace(/\u00A0/g, '') : ''
-    const attrText = Array.from(doc.querySelectorAll('*'))
-    .map(el => Array.from(el.attributes || []).map(a => a.value).join(' '))
-    .join(' ')
+    const item = document.createElement('div')
+    item.innerHTML = `
+<div style="display: flex; justify-content: space-between; align-items: center; overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+">
+  <p>${otp}</p>
+  <img src='https://i.ibb.co/939J93dy/favicon-16x16.png' class='width: 3px;' /> Experimental
+</div>`
+    item.style.padding = '4px 8px'
+    item.style.cursor = 'pointer'
+    item.style.borderBottom = '1px solid #ccc'
 
-    const allText = (text + '\n' + attrText).replace(/\s+/g, '')
-    const numbericRegex = new RegExp(`\\b\\d{${opts.minDigits},${opts.maxDigits}}\\b`, 'g')
-    const alphaNumRegex = new RegExp(`\\b[A-Za-z0-9]{${opts.minAlphaNum},${opts.maxAlphaNum}}\\b`, 'g')
 
-    const queryCodeRegex = /[?&](?:code|otp|token|confirmation|verify|v)[=:]?([A-Zz-z0-9\-._]{4,})/gi
-    const tokenLikeRegex = new RegExp(`\\b[0-9A-Za-z\\-_.]{${opts.minDigits},${opts.maxAlphaNum}}\\b`, 'g')
-
-
-    const candidates = new Map()
-
-    function pushCandidates(value, idx, src, meta = {}){
-        if (!value) return;
-        const key = String(value).trim()
-        if(!key) return;
-        
-        if (!candidates.has(key)){
-            candidates.set(key, {token: key, positions: [], sources: new Set(), score: 0, meta: {}})
-        }
-        const entry = candidates.get(key)
-        entry.positions.push(idx || -1)
-        entry.sources.add(src || 'text')
-        Object.assign(entry.meta, meta || {})
-
-    }
-
-    let m;
-    while ((m = queryCodeRegex.exec(allText))){
-        pushCandidates(m[1], m.index, 'url_query', {reason: 'in_url_query'})
-    }
-
-    const raw = allText
-    while ((m = numbericRegex.exec(raw))){
-        pushCandidates(m[0], m.index, 'numeric')
-
-    }
-
-    while ((m=alphaNumRegex.exec(raw))){
-        pushCandidates(m[0], m.index, 'aplhanum')
-    }
-
-    while ((m=tokenLikeRegex.exec(raw))) {
-        pushCandidates(m[0], m.index, 'token_like')
-    }
-
-    const lowerText = raw.toLowerCase()
-    const keywordPositions = opts.keywords.flatMap(k => {
-        const list = []
-        let i = lowerText.indexOf(k)
-
-        while (i !== -1){
-            list.push({kw: k, idx: i})
-            i = lowerText.indexOf(k, i+1)
-        }
-        return list
+    item.addEventListener('mousedown', () => {
+        input.value = otp
+        input.dispatchEvent(new Event("input", { bubbles: true }))
+        removeEmailDropdown()
     })
 
-    const isLikelyDate = token => /\b\d{1.2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/.test(token) || /\b\d{4}-\d{2}-\d{2}\b/.test(token)
-    const isLikelyTime = token => /\b\d{1,2}:\d{2}\b/.test(token) || /am|pm/i.texh(token)
-    const isEmail = token => /@/.test(token)
-    const isCurrency = token  => /^[£¥€$]\d/.test(token) || /\d[.,]\d{2}\s?(USD|INR|EUR|GBP)?/i.test(token)
+    box.appendChild(item)
 
-    for (const entry of candidates.values()){
-        const token = entry.token
-        let score = 0
-        const pos = entry.positions[0] || 0
+    const about = document.createElement('div')
 
-        if (/^\d+$/.test(token)) {
-            if (token.length >= 6 && token.length <= 6) score += 60
-            else if (token.length >= 4 && token.length <= 6) score += 50
-            else if (token.length === 8) score += 40
-            else score += 20
-        } else if (/^[A-Za-z0-9\-_.]+$/.test(token)){
-            if (token.length >= 6 && token.length <= 10) score += 50
-            else score += 25
-        } else {
-            score += 5
-        }
+    about.innerText = `You can turn this suggestion off from the extension&#39;s "Additional" settings. By QuickTime`
+    about.style.fontSize = '8px'
 
-        for (const kp of keywordPositions) {
-            const distance = Math.abs(kp.idx - pos)
-            if (distance < opts.windowChars){
-                const boost = Math.max(0, 40 - Math.floor(distance / 2))
-                score += boost
-                entry.meta.nearKeyword = kp.kw
-            }
-        }
-        const contextWindow = raw.slice(Math.max(0, pos-20), pos +Math.min(20, token.length + 20)).toLowerCase()
-        if (/[^\w](:|is|code|otp|pin|passcode)\s*$/.test(contextWindow) || /:\s*$/.test(contextWindow)){
-            score += 20
-        }
+    box.appendChild(about)
+    const rect = input.getBoundingClientRect()
+    box.style.top = `${rect.bottom + window.scrollY}px`
+    box.style.left = `${rect.left + window.scrollX}px`
+    box.style.width = `${rect.width}px`
 
-        if (entry.score.has('url_query') || entry.sources.has('href') || lowerText.slice(Math.max(0, pos - 50), pos + token.length + 50).includes('http')){
-            score += 30
-            entry.meta.findInUrl = true
-        }
-        if (isLikelyDate(token)) {
-            score -= 40
-            entry.meta.reason = (entry.meta.reason || '') + 'date_like'
-        }
-        if (isLikelyTime(token)) {
-            score -= 30
-            entry.meta.reason = (entry.meta.reason || '') + 'time_like'
-        }
-        if (isEmail(token)) {
-            score -= 60
-            entry.meta.reason = (entry.meta.reason || '') + 'email_like'
-        }
-        if (isCurrency(token)) {
-            score -= 30
-            entry.meta.reason = (entry.meta.reason || '') + 'currency_like'
-        }
+    document.body.appendChild(box)
+    input.addEventListener("blur", () => removeEmailDropdown(), { once: true })
+    input.setAttribute("autocomplete", "off");
+    input.setAttribute("autocorrect", "off");
+    input.setAttribute("autocapitalize", "off");
+    input.setAttribute("spellcheck", "false");
 
-        if (entry.positions.length > 3) score -= 10
-
-        entry.score  = Math.max(10, Math.round(score))
-    }
-
-    const list = Array.from(candidates.values())
-    .filter(e => e.score > 0)
-    .sort((a,b) => b.score - a.score)
-
-    return {
-        best: list[0] || null,
-        all: list
-    }
 }
+
+otpInputs.forEach(inp => {
+    inp.addEventListener('focus', async () => {
+        const res = await browser.runtime.sendMessage({ action: 'getOtpSuggestion' })
+        if (res && res.otp) {
+            showEmailDropdown(inp, res.otp)
+        }
+    })
+})
