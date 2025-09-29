@@ -51,7 +51,7 @@ You have successfully added the extenion to your Firefox browser for testing.
 - Best n most advanced UI with crazy customizations (this will be my USP :)
 - Auto email suggestions on opened pages' email inputs
 - Auto extraction of verification codes from your email - No AI and codes r extracted in client side only
-- Search through your emails
+- Search through your emails with two diff modes: Auto and Enter mode
 
 # Upcomming featuers
 - I think i'm done for now :) don't get too happy, i will 'surely' be back 
@@ -60,6 +60,7 @@ You have successfully added the extenion to your Firefox browser for testing.
 - Storage (it will store your garbage in your 'Trash')
 - Notifications (it will find its way to bug u)
 - Unlimited Storage 💀 (it will eat you up, jk it will eat 'your pc') -  seriously tho it will store all of your emails efficiently  :)
+- Tabs (to open the email links in new tabs)
 
 
 # Least AI Policy by me :)
