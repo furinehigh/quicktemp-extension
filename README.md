@@ -41,7 +41,7 @@ It will generate all the required files under `/build`.
 You have successfully added the extenion to your Firefox browser for testing.
 
 # Note
-Please ignore this error: Uncaught (in promise) Error: Could not establish connection. Receiving end does not exist.
+Please ignore this error: `Uncaught (in promise) Error: Could not establish connection. Receiving end does not exist.`
 Bcoz this occurs when u recieve an email but your extension is not opened. This doesn't make any diff in extensions working at all.
 
 # Features
