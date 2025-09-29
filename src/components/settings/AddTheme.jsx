@@ -1,14 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { HexColorPicker } from "react-colorful";
-
+/* global browser */
+if (typeof browser === "undefined") {
+    /* global chrome */
+    var browser = chrome;
+}
 function AddTheme({ isOpen, onClose, updateData, onSubmit }) {
     const [data, setData] = useState({
         bg: "#000000",
         fg: "#ffffff",
         btnbg: "#3b82f6",
         bbg: "#374151",
+        logo: '#3b82f6'
     });
+    const [noOfYeah, setNoOfYeah] = useState()
+    const [showLColor, setShowLColor] = useState(false)
+    const [showMsg, setShowMsg] = useState('')
 
     useEffect(() => {
         if (updateData?.data !== undefined) {
@@ -16,12 +24,21 @@ function AddTheme({ isOpen, onClose, updateData, onSubmit }) {
         }
     }, [updateData])
 
+    useEffect(() => {
+        browser.storage.local.get('settings', (res) => {
+            setNoOfYeah(res?.settings?.noOfYeah)
+            if (res?.settings?.noOfYeah > 2) {
+                setShowLColor(true)
+            }
+        })
+    }, [])
 
     const [focused, setFocused] = useState({
         bg: false,
         fg: false,
         btnbg: false,
         bbg: false,
+        logo: false
     });
 
     const handleFieldChange = (name, color) => {
@@ -30,6 +47,32 @@ function AddTheme({ isOpen, onClose, updateData, onSubmit }) {
             [name]: color,
         }));
     };
+
+    useEffect(() => {
+        (async () => {
+            browser.storage.local.get('settings', async (res) => {
+                await browser.storage.local.set({ settings: {
+                    ...res?.settings,
+                    noOfYeah
+                }})
+            })
+        })()
+    }, [noOfYeah])
+    
+    // some fun part
+    const handleYeah = () => {
+        setNoOfYeah((prev) => prev+1)
+        setShowLColor(true)
+    }
+    const handleNah = () => {
+        setShowLColor(false)
+        if (noOfYeah === 0) {
+            setShowMsg('Figured as much...')
+        }
+        if (noOfYeah === 1) {
+            setShowMsg('Ah now u get it!')
+        }
+    }
 
     if (!isOpen) return null;
 
@@ -117,6 +160,75 @@ function AddTheme({ isOpen, onClose, updateData, onSubmit }) {
                                     />
                                 </div>
                             )}
+                        </div>
+                    </div>
+                    <div className="flex flex-col col-span-2">
+                        <label className="font-semibold">My Identity(Logo duh)</label>
+                        <div className="relative">
+
+                            {showLColor ?
+                                (<>
+                                    <span
+                                        tabIndex={0}
+                                        style={{ backgroundColor: data?.logo }}
+                                        onClick={() => setFocused({ ...focused, logo: true })}
+                                        className="w-full h-6 border rounded cursor-pointer block"
+                                    />
+
+                                    {focused.logo && (
+                                        <div onBlur={() => setFocused({ ...focused, logo: false })} className="absolute top-full left-0 mt-2 z-50">
+                                            <HexColorPicker
+                                                color={data?.logo}
+                                                onChange={(c) => handleFieldChange("logo", c)}
+                                            />
+                                        </div>
+                                    )}
+                                </>)
+                                : noOfYeah === 0 && showMsg == '' ? (
+                                    <div className="flex text-[11px] text-bbg justify-between items-center">
+                                        <p>You THINK u can change MEEE, huh?</p>
+                                        <div className="flex space-x-2">
+
+                                            <button onClick={handleYeah} className="hover:underline hover:text-btnbg transition duration-100 border-none">Yeah</button>
+                                            <button onClick={handleNah} className="hover:underline hover:text-btnbg transition duration-100 border-none ">Nah</button>
+                                        </div>
+                                    </div>
+                                ) : noOfYeah === 1 && showMsg == '' ? (
+                                    <div className="flex text-[11px] text-bbg justify-between items-center">
+                                        <p>You think this is FUNNY, TRY that AGAIN...</p>
+                                        <div className="flex space-x-2">
+
+                                            <button onClick={handleYeah}  className="hover:underline hover:text-btnbg transition duration-100 border-none">Sure is</button>
+                                            <button onClick={handleNah} className="hover:underline hover:text-btnbg transition duration-100 border-none ">MB</button>
+                                        </div>
+                                    </div>
+                                ) : showMsg !== '' ? (
+                                    <div className="flex text-[11px] text-bbg justify-between items-center">
+                                        <p>{showMsg}</p>
+                                        <div className="flex space-x-2">
+
+                                            <button onClick={handleYeah}  className="hover:underline hover:text-btnbg transition duration-100 border-none">Changed my mind</button>
+                                            
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                    <span
+                                        tabIndex={0}
+                                        style={{ backgroundColor: data?.logo }}
+                                        onClick={() => setFocused({ ...focused, logo: true })}
+                                        className="w-full h-6 border rounded cursor-pointer block"
+                                    />
+
+                                    {focused.logo && (
+                                        <div onBlur={() => setFocused({ ...focused, logo: false })} className="absolute top-full left-0 mt-2 z-50">
+                                            <HexColorPicker
+                                                color={data?.logo}
+                                                onChange={(c) => handleFieldChange("logo", c)}
+                                            />
+                                        </div>
+                                    )}</>
+                                )}
                         </div>
                     </div>
                 </div>

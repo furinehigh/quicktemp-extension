@@ -1,6 +1,6 @@
 import React, { useEffect, useState, forwardRef, useImperativeHandle, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, OctagonAlert, Star, Trash } from "lucide-react";
+import { ChevronLeft, ChevronRight, OctagonAlert, RotateCcw, Star, Trash } from "lucide-react";
 import { deleteMessage, fetchMailbox, moveToFolder, getEmailCounts } from "../utils/api";
 import { useToast } from "../contexts/ToastContext";
 /* global browser */
@@ -117,8 +117,9 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
         setEmails((prev) => [msg.data, ...prev]);
         setCurrentPage(1);
         refreshCounts()
-        const audio = new Audio("/new-email.mp3");
-        audio.play().catch(() => console.warn("Autoplay blocked until user interacts."));
+        // im trusting your OS to bug u for me :)
+        // const audio = new Audio("/new-email.mp3");
+        // audio.play().catch(() => console.warn("Autoplay blocked until user interacts."));
       }
     };
     browser.runtime.onMessage.addListener(listener);
@@ -180,7 +181,7 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
       </div>
 
       {emails.length === 0 && (
-        <p className="text-center text-gray-500">No emails yet in {selectedFolder}. No need to refresh.</p>
+        <p className="text-center text-fg">No emails yet in {selectedFolder}. No need to refresh.</p>
       )}
 
       <AnimatePresence mode="wait">
@@ -223,6 +224,12 @@ const EmailList = forwardRef(({ mailbox, onSelectEmail, setLoading }, ref) => {
               <motion.div
                 className="flex justify-end "
               >
+                {email?.folder?.includes('Trash') && <button className="absolute bottom-3 right-[-15px] group-hover:-translate-x-[73px] opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
+                  e.stopPropagation();
+                    handleFolderChange(mailbox, email.id, 'Inbox')
+                }}>
+                  <RotateCcw size={12} className="text-gray-400 hover:text-green-500 transition duration-300" />
+                </button>}
                 <button className="absolute bottom-3 right-[-15px] group-hover:-translate-x-7 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
                   e.stopPropagation();
                   if ((email?.folder || []).includes('Trash')) {

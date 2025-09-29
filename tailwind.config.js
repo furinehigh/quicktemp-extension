@@ -28,7 +28,8 @@ module.exports = {
         bg: "var(--bg)",
         fg: "var(--fg)",
         btnbg: "var(--btnbg)",
-        bbg: "var(--bbg)"
+        bbg: "var(--bbg)",
+        logo: "var(--logo)"
       },
     },
   },

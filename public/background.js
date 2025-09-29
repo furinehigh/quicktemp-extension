@@ -687,13 +687,15 @@ async function initExtension() {
                     bg: '#ffffff',
                     fg: '#000000',
                     btnbg: '#3b82f6',
-                    bbg: '#d1d5db'
+                    bbg: '#d1d5db',
+                    logo: '#3b82f6'
                 },
                 dark: {
                     bg: '#000000',
                     fg: '#ffffff',
                     btnbg: '#3b82f6',
-                    bbg: '#374151'
+                    bbg: '#374151',
+                    logo: '#3b82f6'
                 },
                 active: 'system'
             },
@@ -702,7 +704,8 @@ async function initExtension() {
                     bg: '#000000',
                     fg: '#ffffff',
                     btnbg: '#3b82f6',
-                    bbg: '#374151'
+                    bbg: '#374151',
+                    logo: '#3b82f6'
                 }
             }
         },
@@ -719,7 +722,8 @@ async function initExtension() {
             suggestions: true,
             codeExtraction: true,
             searchMode: 'auto'
-        }
+        },
+        noOfYeah: 0
     }
 
     let settings = await browser.storage.local.get('settings')

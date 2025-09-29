@@ -519,7 +519,7 @@ function Setting({ setTrigger }) {
                                     <div className='border rounded border-bbg p-2'>
                                         <div className='flex justify-between items-center'>
                                             <div className=''>
-                                                <h1 className='text-sm font-bold'>Search Mode</h1>
+                                                <h1 className='text-sm font-bold'>Default Search Mode</h1>
                                                 <p className='text-gray-500'>Does your potato PC lags? if yes go for search on 'Enter'.</p>
                                             </div>
                                             <div className='border rounded border-bbg flex items-center'>

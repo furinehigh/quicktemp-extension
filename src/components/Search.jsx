@@ -59,12 +59,21 @@ function Search({ onSelectEmail, mailbox }) {
         })
     }, [open])
 
+    const handleModeToggle = () => {
+        if (searchMode == 'auto'){
+            setSearchMode('enter')
+        } else {
+            setSearchMode('auto')
+        }
+    }
+
     const handleFolderChange = async (mailbox, emailId, folder) => {
         const res = await moveToFolder(mailbox, emailId, folder)
         if (res.success) {
             loadEmailsForMailbox(mailbox)
             addToast(`Moved to ${folder}`, 'success')
             if (searchMode == 'enter'){
+                console.log('searching...')
                 handleSearch()
             }
         }
@@ -121,7 +130,7 @@ function Search({ onSelectEmail, mailbox }) {
                             }
                         }}
                     />
-                    <span className='pointer-events-none text-[10px] text-fg bg-bbg rounded px-0.5 absolute right-14 z-[1000] opacity-70 translate-y-[7px]'>{searchMode === 'auto' ? 'Auto Mode' : 'Enter Mode'}</span>
+                    <span onClick={() => handleModeToggle()} className='cursor-pointer text-[10px] text-fg bg-bbg rounded px-0.5 absolute right-14 z-[1000] opacity-70 hover:opacity-100 transition-opacity duration-200 translate-y-[7px]'>{searchMode === 'auto' ? 'Auto Mode' : 'Enter Mode'}</span>
                 </div>
             }
             <SearchIcon size={20} onClick={() => {
@@ -141,7 +150,7 @@ function Search({ onSelectEmail, mailbox }) {
                     <div className='absolute top-20 w-[90%] z-[1000] left-5'>
 
                         {result.length === 0 && (
-                            <p className="text-center text-gray-500">No emails found with your query</p>
+                            <p className="text-center text-fg">No emails found with your query</p>
                         )}
 
                         <AnimatePresence mode="wait">
