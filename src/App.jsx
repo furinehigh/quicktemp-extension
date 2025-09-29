@@ -79,6 +79,9 @@ function App() {
                 setEmail(newEmail);
                 browser.storage.local.set({ tempEmail: newEmail });
                 initWebSocket(newEmail);
+                if (eListRef.current) {
+                  eListRef.current.clientRefresh(email)
+                }
               }}
               className="outline-none focus:outline-none focus:ring-0 p-1.5 w-full border border-bbg rounded-tl-md rounded-bl-md bg-bg text-fg"
             />
@@ -90,6 +93,9 @@ function App() {
                 setEmail(newEmail);
                 browser.storage.local.set({ tempEmail: newEmail });
                 initWebSocket(newEmail);
+                if (eListRef.current) {
+                  eListRef.current.clientRefresh(email)
+                }
               }}
               className="border py-1.5 w-full border-bbg rounded-tr-md rounded-br-md border-l-0 bg-bg text-fg"
             >

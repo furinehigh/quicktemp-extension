@@ -36,20 +36,31 @@ function Search({ onSelectEmail, mailbox }) {
 
     const handleSearch = () => {
         if (!searchQuery || searchMode !== 'enter') return;
-        const rslt = emails.filter(e => (e?.text || '').includes(searchQuery) || (e?.subject || '').includes(searchQuery) || (e?.from || '').includes(searchQuery))
-        setResult(rslt)
-    }
+        const lowerQuery = searchQuery.toLowerCase();
+        const rslt = emails.filter(e =>
+            (e?.text || '').toLowerCase().includes(lowerQuery) ||
+            (e?.subject || '').toLowerCase().includes(lowerQuery) ||
+            (e?.from || '').toLowerCase().includes(lowerQuery)
+        );
+        setResult(rslt);
+    };
 
     useEffect(() => {
         if (searchMode === 'auto') {
             if (searchQuery !== '') {
-                const rslt = emails.filter(e => (e?.text || '').includes(searchQuery) || (e?.subject || '').includes(searchQuery) || (e?.from || '').includes(searchQuery))
-                setResult(rslt)
+                const lowerQuery = searchQuery.toLowerCase();
+                const rslt = emails.filter(e =>
+                    (e?.text || '').toLowerCase().includes(lowerQuery) ||
+                    (e?.subject || '').toLowerCase().includes(lowerQuery) ||
+                    (e?.from || '').toLowerCase().includes(lowerQuery)
+                );
+                setResult(rslt);
             } else {
-                setResult([])
+                setResult([]);
             }
         }
-    }, [searchQuery, emails])
+    }, [searchQuery, emails]);
+
 
     useEffect(() => {
         browser.storage.local.get('settings', (res) => {
@@ -60,7 +71,7 @@ function Search({ onSelectEmail, mailbox }) {
     }, [open])
 
     const handleModeToggle = () => {
-        if (searchMode == 'auto'){
+        if (searchMode == 'auto') {
             setSearchMode('enter')
         } else {
             setSearchMode('auto')
@@ -72,7 +83,7 @@ function Search({ onSelectEmail, mailbox }) {
         if (res.success) {
             loadEmailsForMailbox(mailbox)
             addToast(`Moved to ${folder}`, 'success')
-            if (searchMode == 'enter'){
+            if (searchMode == 'enter') {
                 console.log('searching...')
                 handleSearch()
             }
