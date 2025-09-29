@@ -96,20 +96,6 @@ function Setting({ setTrigger }) {
         }
     }
 
-    const handleThemeChange = (name, custom = undefined) => {
-        let settingChanges = {
-            Layout: {
-                theme: {
-                    ...settings.Layout.theme,
-                    active: name
-                },
-                customTheme: settings.Layout.customTheme
-            }
-        }
-        setCurrChanges(settingChanges)
-        setSaved(false)
-    }
-
     const handleAddTheme = async (data, updateId) => {
         let Layout;
         if (updateId == '') {
@@ -151,7 +137,7 @@ function Setting({ setTrigger }) {
             }
         }
 
-        if (isEqual(Layout, settings.Layout)) {
+        if (name === settings.Layout.theme.active) {
             setSaved(true)
             setCurrChanges({})
         } else {
@@ -304,6 +290,23 @@ function Setting({ setTrigger }) {
             setSaved(false)
         }
     }
+    const handleChangeSMode = (value) => {
+        let Additional = {
+            ...settings.Additional,
+            searchMode: value
+        }
+        if (isEqual(Additional, settings.Additional)) {
+            setSaved(true)
+            setCurrChanges({})
+        } else {
+
+            setCurrChanges((prev) => ({
+                ...prev,
+                Additional
+            }))
+            setSaved(false)
+        }
+    }
 
     const navTabs = [
         'Layout',
@@ -379,13 +382,13 @@ function Setting({ setTrigger }) {
                                                 <p className='text-gray-500'>Choose your preferred theme</p>
                                             </div>
                                             <div className='border rounded border-bbg flex items-center'>
-                                                <button onClick={() => handleThemeChange('dark')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == 'dark' : settings?.Layout?.theme?.active == 'dark') ? 'bg-bbg' : ''} border-r border-r-bbg p-1`}>
+                                                <button onClick={() => handleSelectTheme('dark')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == 'dark' : settings?.Layout?.theme?.active == 'dark') ? 'bg-bbg' : ''} border-r border-r-bbg p-1`}>
                                                     <Moon size={14} />
                                                 </button>
-                                                <button onClick={() => handleThemeChange('light')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == 'light' : settings?.Layout?.theme?.active == 'light') ? 'bg-bbg' : ''} border-r border-r-bbg p-1`}>
+                                                <button onClick={() => handleSelectTheme('light')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == 'light' : settings?.Layout?.theme?.active == 'light') ? 'bg-bbg' : ''} border-r border-r-bbg p-1`}>
                                                     <Sun size={14} />
                                                 </button>
-                                                <button onClick={() => handleThemeChange('system')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == 'system' : settings?.Layout?.theme?.active == 'system') ? 'bg-bbg' : ''} p-1 `}>
+                                                <button onClick={() => handleSelectTheme('system')} className={`${(Object.keys(currChanges?.Layout?.theme || {}).length !== 0 ? currChanges?.Layout?.theme?.active == 'system' : settings?.Layout?.theme?.active == 'system') ? 'bg-bbg' : ''} p-1 `}>
                                                     <SunMoon size={14} />
                                                 </button>
                                             </div>
@@ -509,6 +512,22 @@ function Setting({ setTrigger }) {
                                                 </button>
                                                 <button onClick={() => handleChangeCExt(false)} className={`${(Object.keys(currChanges?.Additional || {}).length !== 0 ? currChanges?.Additional?.codeExtraction == false : settings?.Additional?.codeExtraction == false) ? 'bg-bbg' : ''} border-r border-r-bbg p-1`}>
                                                     No
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className='border rounded border-bbg p-2'>
+                                        <div className='flex justify-between items-center'>
+                                            <div className=''>
+                                                <h1 className='text-sm font-bold'>Search Mode</h1>
+                                                <p className='text-gray-500'>Does your potato PC lags? if yes go for search on 'Enter'.</p>
+                                            </div>
+                                            <div className='border rounded border-bbg flex items-center'>
+                                                <button onClick={() => handleChangeSMode('auto')} className={`${(Object.keys(currChanges?.Additional || {}).length !== 0 ? currChanges?.Additional?.searchMode == 'auto' : settings?.Additional?.searchMode == 'auto') ? 'bg-bbg' : ''} border-r border-r-bbg p-1`}>
+                                                    Auto
+                                                </button>
+                                                <button onClick={() => handleChangeSMode('enter')} className={`${(Object.keys(currChanges?.Additional || {}).length !== 0 ? currChanges?.Additional?.searchMode == 'enter' : settings?.Additional?.searchMode == 'enter') ? 'bg-bbg' : ''} border-r border-r-bbg p-1`}>
+                                                    Enter
                                                 </button>
                                             </div>
                                         </div>

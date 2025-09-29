@@ -717,7 +717,8 @@ async function initExtension() {
         },
         Additional: {
             suggestions: true,
-            codeExtraction: true
+            codeExtraction: true,
+            searchMode: 'auto'
         }
     }
 

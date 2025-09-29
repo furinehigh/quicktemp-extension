@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SearchIcon, Trash, Star, OctagonAlert } from 'lucide-react'
-import { moveToFolder } from '../utils/api'
+import { moveToFolder, deleteMessage } from '../utils/api'
 import { useToast } from '../contexts/ToastContext';
 /* global browser */
 let dltEmailId = null;
 if (typeof browser === "undefined") {
-  /* global chrome */
-  var browser = chrome;
+    /* global chrome */
+    var browser = chrome;
 }
 function Search({ onSelectEmail, mailbox }) {
     const [open, setOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
     const [emails, setEmails] = useState([])
     const [result, setResult] = useState([])
-    const {addToast} = useToast()
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [searchMode, setSearchMode] = useState('')
+    const { addToast } = useToast()
 
     const loadEmailsForMailbox = (mb) => {
         if (!mb) {
@@ -32,22 +34,75 @@ function Search({ onSelectEmail, mailbox }) {
         loadEmailsForMailbox(mailbox);
     }, [mailbox]);
 
+    const handleSearch = () => {
+        if (!searchQuery || searchMode !== 'enter') return;
+        const rslt = emails.filter(e => (e?.text || '').includes(searchQuery) || (e?.subject || '').includes(searchQuery) || (e?.from || '').includes(searchQuery))
+        setResult(rslt)
+    }
+
     useEffect(() => {
-        if (searchQuery !== '') {
-            const rslt = emails.filter(e => (e?.text || '').includes(searchQuery) || (e?.subject || '').includes(searchQuery) || (e?.from || '').includes(searchQuery))
-            setResult(rslt)
-        } else {
-            setResult([])
+        if (searchMode === 'auto') {
+            if (searchQuery !== '') {
+                const rslt = emails.filter(e => (e?.text || '').includes(searchQuery) || (e?.subject || '').includes(searchQuery) || (e?.from || '').includes(searchQuery))
+                setResult(rslt)
+            } else {
+                setResult([])
+            }
         }
-    }, [searchQuery])
+    }, [searchQuery, emails])
+
+    useEffect(() => {
+        browser.storage.local.get('settings', (res) => {
+            let settings = res.settings
+            setSearchMode(settings.Additional.searchMode || 'auto')
+            console.log(settings.Additional.searchMode)
+        })
+    }, [open])
 
     const handleFolderChange = async (mailbox, emailId, folder) => {
         const res = await moveToFolder(mailbox, emailId, folder)
         if (res.success) {
             loadEmailsForMailbox(mailbox)
             addToast(`Moved to ${folder}`, 'success')
+            if (searchMode == 'enter'){
+                handleSearch()
+            }
         }
     }
+
+    const DeleteDialog = ({ emailId, onClose }) => {
+        if (!showDeleteDialog) return;
+        return (
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center text-xs justify-center z-[1002]">
+                <div className="bg-bg p-4 rounded border border-bbg w-72">
+                    <p>Are you sure you want to delete this email?</p>
+                    <div className="flex justify-end space-x-2 mt-4">
+                        <button
+                            className="px-4 py-2 bg-red-600 text-white rounded"
+                            onClick={() => {
+                                deleteMessage(mailbox, emailId).then(() => {
+                                    setEmails((prev) => prev.filter((em) => em.id !== emailId));
+                                    addToast('Email deleted', 'success')
+                                }).catch((err) => {
+                                    addToast('Error deleting email', 'error')
+                                });
+                                onClose();
+                            }}
+                        >
+                            Delete
+                        </button>
+                        <button className="px-4 py-2 bg-bbg rounded" onClick={onClose}>
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    };
     return (
         <div>
             {open &&
@@ -55,15 +110,24 @@ function Search({ onSelectEmail, mailbox }) {
                     <motion.input
                         initial={{ width: 0, opacity: 0 }}
                         animate={{ width: '90%', opacity: 1 }}
-                        className='bg-bg text-fg border border-bbg z-[100] rounded p-2 pr-5 outline-none focus:outline-none focus:ring-0 absolute top-4 left-5'
+                        className='bg-bg text-fg border border-bbg z-[100] text-sm rounded p-2 pr-24 outline-none focus:outline-none focus:ring-0 absolute top-[24px] left-5'
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder='Search'
                         autoFocus
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                handleSearch()
+                            }
+                        }}
                     />
+                    <span className='pointer-events-none text-[10px] text-fg bg-bbg rounded px-0.5 absolute right-14 z-[1000] opacity-70 translate-y-[7px]'>{searchMode === 'auto' ? 'Auto Mode' : 'Enter Mode'}</span>
                 </div>
             }
-            <SearchIcon size={20} onClick={() => setOpen(true)} className={`${open ? 'absolute z-[1000] translate-x-3' : ''} transition-transform duration-500 inline text-fg cursor-pointer`} />
+            <SearchIcon size={20} onClick={() => {
+                if (open) handleSearch()
+                else setOpen(true)
+            }} className={`${open ? 'absolute z-[1000] translate-x-3  top-[33px]' : ''} transition-transform duration-500 inline text-fg cursor-pointer`} />
             {open &&
                 <>
                     <motion.div
@@ -122,11 +186,13 @@ function Search({ onSelectEmail, mailbox }) {
                                             <button className="absolute bottom-3 right-[-15px] group-hover:-translate-x-7 opacity-0  group-hover:opacity-100 transition duration-200 mt-2 text-xs" onClick={(e) => {
                                                 e.stopPropagation();
                                                 if ((email?.folder || []).includes('Trash')) {
+                                                    setShowDeleteDialog(true);
+                                                    dltEmailId = email.id;
                                                 } else {
                                                     handleFolderChange(mailbox, email.id, 'Trash')
                                                 }
                                             }}>
-                                                <Trash size={12} className="text-gray-400 hover:text-red-500 transition duration-300" />
+                                                <Trash size={12} className={`text-gray-400 hover:text-red-500 ${(email?.folder || []).includes('Trash') ? 'text-red-500' : ''} transition duration-300`} />
                                             </button>
                                             <button className={`absolute bottom-3 right-3 group-hover:-translate-x-8 ${(email?.folder || []).includes('Starred') ? 'opacity-100' : 'opacity-0'}  group-hover:opacity-100 transition-transform duration-200 mt-2 text-xs`} onClick={(e) => {
                                                 e.stopPropagation();
@@ -154,6 +220,7 @@ function Search({ onSelectEmail, mailbox }) {
                             </motion.div>
                         </AnimatePresence>
 
+                        <DeleteDialog emailId={dltEmailId} onClose={() => setShowDeleteDialog(false)} />
                     </div>
                 </>
 

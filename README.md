@@ -54,6 +54,7 @@ You have successfully added the extenion to your Firefox browser for testing.
 - Search through your emails
 
 # Upcomming featuers
+- I think i'm done for now :) don't get too happy, i will 'surely' be back 
 
 # Permissions needed for this extension
 - Storage (it will store your garbage in your 'Trash')
