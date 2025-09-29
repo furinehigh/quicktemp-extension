@@ -148,6 +148,7 @@ function App() {
         {showHistory && <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} usingEmail={(e) => {
           setEmail(e)
           setSelectedDomain(e.split('@')[1])
+          browser.storage.local.set({ tempEmail: e });
           if (eListRef.current) {
             eListRef.current.clientRefresh(email)
           }
