@@ -113,7 +113,7 @@ function Search({ onSelectEmail, mailbox }) {
         );
     };
     return (
-        <div>
+        <div className='overflow-hidden'>
             {open &&
                 <div className=' '>
                     <motion.input
@@ -147,7 +147,7 @@ function Search({ onSelectEmail, mailbox }) {
                         className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
                     >
                     </motion.div>
-                    <div className='absolute top-20 w-[90%] z-[1000] left-5'>
+                    <div className='absolute top-20 w-[90%] z-[1000] left-5 max-h-[450px] overflow-y-auto'>
 
                         {result.length === 0 && (
                             <p className="text-center text-fg">No emails found with your query</p>

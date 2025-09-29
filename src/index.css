@@ -15,3 +15,36 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+
+/* Works on Chrome/Edge/Opera */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background: transparent; /* transparent bg */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--btnbg); /* main thumb color */
+  border-radius: 9999px; /* fully rounded, cute */
+  border: 2px solid transparent; /* gap effect */
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--fg); /* hover effect */
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--btnbg) transparent;
+}
