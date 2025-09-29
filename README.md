@@ -9,7 +9,8 @@ Temporary email extension for your browser with crazy features that you might ha
 ## Video Demo
 
 
-https://github.com/user-attachments/assets/b4cac976-7f8f-44ae-9640-1ec14658b477
+https://github.com/user-attachments/assets/b8353f83-9acb-4d3c-b8c6-81a4a33f5b6d
+
 
 
 
