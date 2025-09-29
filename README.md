@@ -47,6 +47,7 @@ You have successfully added the extenion to your Firefox browser for testing.
 - Notifications for new emails
 - History of your mailboxes
 - Multiple folder based email management for less chaos 
+- Works offline too - u can easily access loaded emails offline
 - Email contents are purified and is opened in a sandbox for ur security
 - Custom Spam filter so that u have full control over ur incomming emails
 - Best n most advanced UI with crazy customizations (this will be my USP :)
