@@ -1,8 +1,7 @@
 /* global browser */
-if (typeof browser === "undefined") {
-    /* global chrome */
-    var browser = chrome;
-}
+importScripts("libs/webextension-polyfill.js");
+
+
 
 let isStorageLocked = false;
 const updateQueue = [];
@@ -553,6 +552,7 @@ let socket;
 
 async function initWebSocket() {
     const result = await browser.storage.local.get("tempEmail");
+
     const email = result.tempEmail;
     if (!email) return;
 
