@@ -157,7 +157,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     const updatedCounts = Object.fromEntries(
                         Object.keys(existingCounts).map((k) => [
                             k,
-                            filteredData.filter((e) => e.folder.includes(k)).length,
+                            filteredData.filter((e) => (e?.folder || []).includes(k)).length,
                         ])
                     );
 

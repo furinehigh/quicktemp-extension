@@ -1,0 +1,41 @@
+{
+  "manifest_version": 2,
+  "name": "QuickTemp - Highly customizable temp mail UI",
+  "version": "2.0",
+  "description": "An advanced disposalbe email UI for pros",
+  "browser_action": {
+    "default_popup": "index.html"
+  },
+  "icons": {
+    "61": "icon61.png"
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": true
+  },
+  "permissions": [
+    "storage",
+    "notifications",
+    "unlimitedStorage",
+    "tabs"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "furinehigh@outlook.com",
+      "strict_min_version": "109.0"
+    }
+  }
+}
